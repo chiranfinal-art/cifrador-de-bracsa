@@ -1351,7 +1351,8 @@ const audio = {
     if (S.playing) { this.cortarAcomp(); el.currentTime = t; this.ultimo = t; this.acharProx(t); }
     atualizarRelogio();
   },
-  acharProx(t) { this.prox = this.eventos.findIndex(ev => ev.t >= t - 0.005); if (this.prox < 0) this.prox = this.eventos.length; },
+  // a partir do primeiro evento que ainda está soando em t (arcadas longas que já começaram também entram)
+  acharProx(t) { this.prox = this.eventos.findIndex(ev => ev.t + ev.d > t + 0.02); if (this.prox < 0) this.prox = this.eventos.length; },
   async tocar() {
     if (!S.url) return;
     this.garantir(); this.ligarGravacao();
@@ -1393,7 +1394,14 @@ const audio = {
     const r = S.speed, lim = ag + 0.22 * r, agoraCtx = this.ctx.currentTime;
     while (this.prox < this.eventos.length && this.eventos[this.prox].t < lim) {
       const ev = this.eventos[this.prox++];
-      if (ev.t < ag - 0.03) continue;
+      if (ev.t < ag - 0.02) {
+        // devia ter começado um instante atrás (início do play, troca de estilo, repetição):
+        // entra agora com o tempo que ainda falta, em vez de ficar em silêncio
+        const resta = ev.t + ev.d - ag;
+        if (ev.tipo === "clique" || resta < 0.08) continue;
+        tocarEvento(this.ctx, {...ev, t: ag, d: resta, pulso: undefined, liga: false}, agoraCtx, r);
+        continue;
+      }
       tocarEvento(this.ctx, ev, agoraCtx + Math.max(0, (ev.t - ag) / r), r);
     }
   },
