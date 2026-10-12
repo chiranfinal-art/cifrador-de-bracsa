@@ -1,6 +1,6 @@
 /* Modo offline do Cifrador de Brácsa.
    Ao publicar uma versão nova, mude o número em VERSAO para os aparelhos baixarem tudo de novo. */
-const VERSAO = "cifrador-v11";
+const VERSAO = "cifrador-v14";
 const ARQUIVOS = [
   "./", "index.html", "manifest.webmanifest", "exemplo.m4a",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png",

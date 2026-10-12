@@ -20,6 +20,7 @@
 /* Layout: bancada de trabalho. Transporte fixo no topo, linha do tempo larga
    (onda + notas do violino), e embaixo: à esquerda Versos e Acompanhamento,
    à direita a Cifra. Cores do bordado írásos de Kalotaszeg: vermelho e índigo sobre linho. */
+[hidden] { display: none !important; }
 :root {
   --bg: #eff1f4;
   --surface: #fbfbfc;
@@ -625,8 +626,8 @@ const ESTILOS = {
   },
   dunantuli: {
     nome: "Lassú csárdás dunántúli", curto: "dunántúli",
-    desc: "Duas arcadas ligadas em cada tempo, na cabeça do tempo. Brácsa e bőgő juntos.",
-    params: {segunda: {rot: "Onde entra a 2ª nota", min: 0.2, max: 0.8, passo: 0.05, val: 0.5, fmt: v => `1ª ${Math.round(v * 100)}% · 2ª ${Math.round((1 - v) * 100)}%`, ex: "Fração do tempo que a 1ª nota ocupa antes da 2ª arcada ligada."}},
+    desc: "4 notas em cada acorde: ↓↓ ligadas e ↑↑ ligadas. Brácsa e bőgő juntos.",
+    params: {segunda: {rot: "Onde entra a 2ª nota", min: 0.2, max: 0.8, passo: 0.05, val: 0.5, fmt: v => `1ª ${Math.round(v * 100)}% · 2ª ${Math.round((1 - v) * 100)}%`, ex: "Em cada arcada (metade do acorde), quanto a 1ª nota dura antes da 2ª nota ligada."}},
   },
   fuzesi: {
     nome: "Lassú füzesi", curto: "füzesi",
@@ -663,10 +664,12 @@ function padrao(est, D, nb, P) {
       k.push({t: i * B + B / 2, d: Math.max(0.07, a * B), at: "curto", vel: 0.95});
     }
   } else if (est === "dunantuli") {
-    const r = valParam("dunantuli", "segunda", P);
-    for (let i = 0; i < nb; i++) for (const arr of [k, b]) {
-      arr.push({t: i * B, d: r * B, at: "ligado", vel: 1});
-      arr.push({t: i * B + r * B, d: (1 - r) * B, at: "ligado", vel: 0.8, liga: true});
+    // sempre 4 notas por acorde: ↓↓ ligadas na 1ª metade e ↑↑ ligadas na 2ª, qualquer que seja o número de tempos
+    const r = valParam("dunantuli", "segunda", P), M = D / 2;
+    for (let i = 0; i < 2; i++) for (const arr of [k, b]) {
+      const dir = i === 0 ? "↓" : "↑";
+      arr.push({t: i * M, d: r * M, at: "ligado", vel: 1, dir});
+      arr.push({t: i * M + r * M, d: (1 - r) * M, at: "ligado", vel: 0.8, liga: true, dir});
     }
   } else if (est === "fuzesi") {
     const p = valParam("fuzesi", "pulso", P);
@@ -1480,18 +1483,19 @@ function gerarEventos() {
       const c = acordeFinal(v, k); if (!c) continue;
       const P = V.parts[k], est = estiloDe(P);
       if (est === "pausa" || !ESTILOS[est]) continue;
+      // as arcadas ficam sempre DENTRO do acorde, entre as duas linhas (pontos azuis) que o delimitam.
+      // Com grade de tempos, o andamento dentro do acorde segue os tempos marcados.
       const a = b[k], z = b[k + 1];
-      let nb = 0, mapa = null;
+      if (!(z - a > 0.05)) continue;
+      let nb, mapa;
       if (B) {
-        // as linhas do acorde vão para o tempo mais próximo: o acorde tem sempre um número inteiro de
-        // tempos, e cada arcada cai exatamente no tempo (mesmo que a linha esteja um pouco fora)
-        const ba = Math.round(beatDoTempo(a, B)), bz = Math.round(beatDoTempo(z, B)), conta = bz - ba;
-        if (conta < 1) continue;                 // acorde mais curto que um tempo: não cabe um ciclo
-        nb = P.beats || conta; const f = conta / nb;
-        mapa = u => tempoDoBeat(ba + u * f, B);
+        const ba = beatDoTempo(a, B), bz = beatDoTempo(z, B);
+        nb = Math.max(1, P.beats || Math.round(bz - ba));
+        mapa = u => Math.min(z, Math.max(a, tempoDoBeat(ba + u * (bz - ba) / nb, B)));
+      } else {
+        nb = Math.max(1, P.beats || S.beats);
+        mapa = u => a + u * (z - a) / nb;
       }
-      if (!nb) nb = Math.max(1, P.beats || S.beats);
-      if (!mapa) mapa = u => a + u * (z - a) / nb;
       const pd = padrao(est, nb, nb, P), ms = vozBracsa(c);
       const conv = x => { const t = mapa(x.t); return {...x, t, d: Math.max(0.05, mapa(x.t + x.d) - t)}; };
       for (const x of pd.k) ev.push({...conv(x), tipo: "k", ms});
@@ -1557,7 +1561,7 @@ function miniRitmo(est, P) {
       const x0 = x(a.t), w = Math.max(3, x(a.t + a.d) - x0 - 2);
       s += `<rect x="${x0 + 1}" y="${y - 4}" width="${w}" height="8" rx="${a.at === "curto" ? 2 : 4}" fill="${cor}" opacity="${ativo ? 1 : 0.25}"/>`;
       if (a.pulso) s += `<circle cx="${x0 + a.pulso * (x(a.t + a.d) - x0)}" cy="${y}" r="2.2" fill="var(--bg)"/>`;
-      if (a.dir && y < 30) s += `<text x="${x0 + w / 2 - 3}" y="${y - 6}" font-size="9" fill="${cor}" font-family="var(--font-mono)">${a.dir}</text>`;
+      if (a.dir && a.at === "curto" && y < 30) s += `<text x="${x0 + w / 2 - 3}" y="${y - 6}" font-size="9" fill="${cor}" font-family="var(--font-mono)">${a.dir}</text>`;
       if (a.liga) s += `<path d="M${x0 - w * 0.6} ${y - 6} Q ${x0} ${y - 13} ${x0 + w * 0.4} ${y - 6}" fill="none" stroke="${cor}" stroke-width="1.2" opacity="${ativo ? 1 : 0.25}"/>`;
     });
   };
