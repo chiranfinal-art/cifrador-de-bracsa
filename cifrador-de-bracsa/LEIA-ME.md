@@ -58,6 +58,27 @@ isso, não envie esse arquivo: o app abre vazio e pede uma gravação.
 - **iPhone (Safari):** abra o endereço → botão **Compartilhar** → **Adicionar à Tela de Início**.
 
 O ícone vermelho aparece na tela inicial e o app abre em tela cheia, também sem internet.
+No Chrome/Edge (Android e computador), o próprio programa mostra um botão vermelho
+**Instalar app** no topo quando a instalação está disponível.
+
+### Não aparece o botão de instalar?
+Confira nesta ordem:
+1. **iPhone/iPad:** não existe botão; é sempre pelo Safari → **Compartilhar** →
+   **Adicionar à Tela de Início**. (O botão *Instalar app* do programa mostra esse passo a passo.)
+2. **Firefox no computador** não instala apps desse tipo. Use Chrome ou Edge.
+3. **O endereço certo abre o programa?** Abra `https://SEU-USUARIO.github.io/cifrador/`.
+   Se aparecer erro 404 ou uma página com o texto do repositório, os arquivos estão no
+   lugar errado. Na página do repositório, a lista precisa mostrar `index.html`, `sw.js`,
+   `manifest.webmanifest` e a pasta `icons` **logo na primeira tela**, sem estarem dentro
+   de uma pasta `app`. Se estiverem dentro de `app`, o endereço do app passa a ser
+   `https://SEU-USUARIO.github.io/cifrador/app/` (também funciona; use esse).
+4. **O manifesto está acessível?** Abra `https://SEU-USUARIO.github.io/cifrador/manifest.webmanifest`.
+   Tem que aparecer um texto começando com `{ "name": "Cifrador de Brácsa"`.
+5. **Recém-publicado:** o GitHub Pages leva 1–2 minutos. Depois, recarregue a página e
+   espere uns segundos navegando nela: o Chrome só oferece a instalação depois de carregar o
+   modo offline.
+6. **Já está instalado?** Se já instalou antes, o Chrome não oferece de novo. Procure o
+   ícone na tela inicial ou na lista de apps.
 
 ### Usando no celular
 - **Abrir gravação** abre o seletor de arquivos. No iPhone, salve antes a gravação do app

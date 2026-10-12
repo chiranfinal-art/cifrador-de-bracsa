@@ -203,12 +203,15 @@ details summary { cursor: pointer; font-weight: 600; }
       <div class="meta" id="meta">Carregando o exemplo…</div>
     </div>
     <div class="row">
+      <button id="instalar" class="primary" hidden>Instalar app</button>
       <button id="recOpen" aria-expanded="false"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block"></span>Gravar</button>
       <label class="btn" for="fileIn">Abrir gravação<input type="file" id="fileIn" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac"></label>
       <label class="btn" for="projIn">Abrir projeto<input type="file" id="projIn" accept=".json,application/json"></label>
       <button id="saveProj" class="ghost">Salvar projeto</button>
     </div>
   </header>
+
+  <div class="aviso" id="instAjuda" hidden></div>
 
   <section class="rec" id="recPanel" hidden aria-label="Gravar">
     <div class="row"><h2>Gravar</h2><span class="spacer"></span><button class="ghost" id="recClose">Fechar</button></div>
@@ -1516,6 +1519,29 @@ $("fileIn").onchange = async e => { const f = e.target.files[0]; e.target.value 
 const EXEMPLO = {versos: [0.72, 12.10, 23.52, 33.98].map(t => ({inicio: t, partes: 8, cortes: null, acordes: Array.from({length: 8}, () => ({}))})),
   fim: 45.3, nParts: 8, estilo: "ugros", tempos: 2, instrumentos: "ambos", tonalidade: null};
 const AUDIO_EXEMPLO = "";
+
+/* ============================================================
+   Instalar como aplicativo
+   ============================================================ */
+let pedidoInstalar = null;
+const jaInstalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const temManifesto = () => !!document.querySelector('link[rel="manifest"]');
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; $("instalar").hidden = false; });
+window.addEventListener("appinstalled", () => { $("instalar").hidden = true; $("instAjuda").hidden = true; setStatus("App instalado. Procure o ícone vermelho do Cifrador."); });
+if (!DENTRO_DO_CLAUDE && temManifesto() && !jaInstalado() && ehIOS) $("instalar").hidden = false;
+$("instalar").onclick = async () => {
+  const ajuda = $("instAjuda");
+  if (pedidoInstalar) {
+    pedidoInstalar.prompt();
+    try { const r = await pedidoInstalar.userChoice; if (r.outcome === "accepted") $("instalar").hidden = true; } catch (e) {}
+    pedidoInstalar = null; return;
+  }
+  ajuda.hidden = false;
+  ajuda.textContent = ehIOS
+    ? "No iPhone/iPad: toque em Compartilhar (o quadrado com a seta para cima, na barra do Safari) e depois em \"Adicionar à Tela de Início\". Se estiver em outro navegador, abra este endereço no Safari."
+    : "Use o menu do navegador: no Chrome do Android, ⋮ → Instalar app; no Chrome/Edge do computador, o ícone de instalar na barra de endereço.";
+};
 
 async function iniciar() {
   lerCores(); tamanhoCanvas(); renderEstilos(); renderGrade(); desenhar();
