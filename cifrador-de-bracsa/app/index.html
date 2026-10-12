@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b3222e">
+<meta name="description" content="Grave ou abra uma gravação de violino, marque os versos e gere o acompanhamento de brácsa e bőgő.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cifrador">
+<style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>
+<title>Cifrador de Brácsa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bancada de trabalho. Transporte fixo no topo, linha do tempo larga
+   (onda + notas do violino), e embaixo: à esquerda Versos e Acompanhamento,
+   à direita a Cifra. Cores do bordado írásos de Kalotaszeg: vermelho e índigo sobre linho. */
+:root {
+  --bg: #eff1f4;
+  --surface: #fbfbfc;
+  --raised: #ffffff;
+  --sunk: #e4e7ec;
+  --ink: #1a1e29;
+  --muted: #5b6273;
+  --line: #d2d6de;
+  --red: #b3222e;
+  --red-soft: #b3222e1c;
+  --indigo: #2d4a8c;
+  --indigo-soft: #2d4a8c18;
+  --wave: #8a91a3;
+  --note-in: #2d4a8c;
+  --note-out: #a7adbb;
+  --warn: #a8650f;
+  --font-ui: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101218; --surface: #171a22; --raised: #1d212b; --sunk: #0c0e13; --ink: #e5e8ef; --muted: #9aa1b2;
+    --line: #2b303c; --red: #e2565f; --red-soft: #e2565f24; --indigo: #8aa4e8; --indigo-soft: #8aa4e822;
+    --wave: #5a617a; --note-in: #8aa4e8; --note-out: #4a5062; --warn: #e0a54a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101218; --surface: #171a22; --raised: #1d212b; --sunk: #0c0e13; --ink: #e5e8ef; --muted: #9aa1b2;
+  --line: #2b303c; --red: #e2565f; --red-soft: #e2565f24; --indigo: #8aa4e8; --indigo-soft: #8aa4e822;
+  --wave: #5a617a; --note-in: #8aa4e8; --note-out: #4a5062; --warn: #e0a54a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 14px; line-height: 1.45; }
+.app { max-width: 1320px; margin: 0 auto; padding: 0 16px; padding-block: 14px 48px; display: grid; gap: 14px; }
+h1 { font-stretch: 112%; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; margin: 0; }
+h1 span { color: var(--red); }
+h2 { font-size: 1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+h2 .n { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--red); color: var(--red); font-size: 0.75rem; display: grid; place-items: center; flex: none; }
+h3 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; color: var(--muted); margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; justify-content: space-between; }
+.meta { color: var(--muted); font-size: 0.85rem; }
+.meta b { color: var(--ink); font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.spacer { flex: 1; }
+button, .btn, select, input[type="number"], input[type="text"] {
+  font: inherit; color: var(--ink); background: var(--raised); border: 1px solid var(--line);
+  border-radius: 7px; padding: 6px 11px; min-height: 36px;
+}
+button, .btn { cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+button:hover, .btn:hover { border-color: var(--muted); }
+button:focus-visible, .btn:focus-within, select:focus-visible, input:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
+button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button.ghost { background: transparent; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.on { background: var(--indigo); color: var(--bg); border-color: var(--indigo); }
+.btn input[type="file"] { display: none; }
+input[type="number"] { width: 5em; }
+input.time { width: 6.6em; font-family: var(--font-mono); }
+input[type="range"] { accent-color: var(--indigo); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.hint { color: var(--muted); font-size: 0.84rem; }
+.hint kbd { font-family: var(--font-mono); font-size: 0.76rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--raised); color: var(--ink); }
+
+/* transporte */
+.transport { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; box-shadow: 0 6px 18px -14px #0008; }
+.playbtn { width: 46px; height: 46px; border-radius: 50%; padding: 0; background: var(--red); color: #fff; border: 0; }
+.playbtn svg { width: 18px; height: 18px; fill: currentColor; }
+.clock { font-family: var(--font-mono); font-size: 1.1rem; font-variant-numeric: tabular-nums; min-width: 8.6em; }
+.clock small { color: var(--muted); font-size: 0.8rem; }
+.ctl { display: flex; align-items: center; gap: 7px; font-size: 0.82rem; color: var(--muted); }
+.ctl b { color: var(--ink); font-family: var(--font-mono); font-weight: 600; min-width: 3.2em; }
+.ctl input[type="range"] { width: 92px; }
+.mix { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.ch { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; }
+.ch button { min-height: 30px; padding: 3px 9px; font-size: 0.8rem; }
+.ch input { width: 70px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-height: 34px; background: var(--raised); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--ink); color: var(--bg); }
+
+/* linha do tempo */
+.tl-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; display: grid; gap: 8px; }
+.tl-wrap { position: relative; background: var(--sunk); border-radius: 7px; overflow: hidden; touch-action: pan-y; }
+#tl { display: block; width: 100%; height: 300px; cursor: crosshair; }
+#ov { display: block; width: 100%; height: 30px; cursor: pointer; border-radius: 5px; background: var(--sunk); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 4px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+.zoom { display: inline-flex; gap: 4px; }
+.zoom button { width: 34px; padding: 0; }
+
+/* colunas */
+.cols { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: grid; gap: 14px; min-width: 0; }
+.field { display: grid; gap: 5px; }
+.field > label, .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.passo { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
+.passo .lbl { grid-column: 1 / -1; }
+.passo .row { flex-wrap: nowrap; }
+
+/* estilos */
+.estilos { display: grid; gap: 8px; }
+.est { text-align: left; display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--raised); cursor: pointer; font-weight: 400; justify-content: stretch; }
+.est:hover { border-color: var(--muted); }
+.est.on { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+.est .nm { font-weight: 700; font-size: 0.95rem; }
+.est .ds { color: var(--muted); font-size: 0.82rem; }
+.est svg { width: 100%; height: 54px; display: block; }
+.params { display: grid; gap: 10px; padding: 12px; border-radius: 9px; background: var(--sunk); }
+.param { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; }
+.param label { font-size: 0.82rem; font-weight: 600; }
+.param output { font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); }
+.param input[type="range"] { grid-column: 1 / -1; width: 100%; }
+.param .ex { grid-column: 1 / -1; font-size: 0.78rem; color: var(--muted); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 0.85rem; }
+
+/* cifra */
+.grid-wrap { overflow-x: auto; }
+table.cifra { border-collapse: separate; border-spacing: 4px; font-family: var(--font-mono); }
+table.cifra th { font-weight: 600; font-size: 0.74rem; color: var(--muted); text-align: left; white-space: nowrap; padding-right: 8px; vertical-align: middle; }
+table.cifra th b { color: var(--red); font-size: 0.86rem; }
+table.cifra td { padding: 0; }
+.cell { min-width: 60px; height: 48px; border-radius: 7px; border: 1px solid var(--line); background: var(--raised); font-family: var(--font-mono); font-weight: 600; font-size: 1rem; color: var(--ink); padding: 2px 6px; position: relative; }
+.cell .st { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-size: 0.58rem; color: var(--muted); font-weight: 400; }
+.cell.rep { color: var(--muted); font-weight: 400; }
+.cell.low { border-style: dashed; border-color: var(--warn); }
+.cell.fixed::after { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+.cell.sel { outline: 2px solid var(--indigo); outline-offset: 1px; background: var(--indigo-soft); }
+.cell.now { box-shadow: inset 0 -3px 0 var(--red); }
+.editor { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 12px; }
+.editor .head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: baseline; }
+.editor .head strong { font-size: 1rem; }
+.mel { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-mono); font-weight: 600; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--raised); min-height: 34px; }
+.chip small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.on small { color: var(--bg); opacity: 0.7; }
+.notes-line { font-family: var(--font-mono); font-size: 0.86rem; }
+.notes-line b { color: var(--indigo); }
+.status { font-size: 0.86rem; color: var(--muted); min-height: 1.3em; }
+.status.err { color: var(--red); }
+.bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: var(--red); transition: width 0.15s; }
+.badge { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; background: var(--red-soft); color: var(--red); }
+textarea#txt { width: 100%; min-height: 170px; font-family: var(--font-mono); font-size: 0.8rem; background: var(--raised); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 10px; resize: vertical; }
+details summary { cursor: pointer; font-weight: 600; }
+/* gravação */
+.rec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; }
+.rec-main { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.recbtn { width: 64px; height: 64px; border-radius: 50%; padding: 0; border: 3px solid var(--red); background: var(--raised); }
+.recbtn span { display: block; width: 26px; height: 26px; border-radius: 50%; background: var(--red); transition: border-radius 0.15s, width 0.15s, height 0.15s; }
+.recbtn.on span { border-radius: 5px; width: 22px; height: 22px; }
+.recbtn.on { animation: pulsa 1.2s ease-in-out infinite; }
+@keyframes pulsa { 50% { box-shadow: 0 0 0 7px var(--red-soft); } }
+.rec-clock { font-family: var(--font-mono); font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.5em; }
+.nivel { flex: 1; min-width: 160px; display: grid; gap: 4px; }
+.nivel .trilho { height: 10px; border-radius: 5px; background: var(--sunk); overflow: hidden; }
+.nivel .trilho div { height: 100%; width: 0; background: var(--indigo); border-radius: 5px; }
+.nivel .trilho div.alto { background: var(--red); }
+.takes { display: grid; gap: 6px; }
+.take { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--raised); }
+.take .nm { font-weight: 600; }
+.take .info { color: var(--muted); font-size: 0.82rem; font-family: var(--font-mono); }
+.take button { min-height: 32px; padding: 3px 10px; font-size: 0.84rem; }
+.aviso { padding: 10px 12px; border-radius: 8px; background: var(--red-soft); color: var(--ink); font-size: 0.86rem; }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } .recbtn.on { animation: none; } }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Cifrador de <span>Brácsa</span></h1>
+      <div class="meta" id="meta">Carregando o exemplo…</div>
+    </div>
+    <div class="row">
+      <button id="recOpen" aria-expanded="false"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block"></span>Gravar</button>
+      <label class="btn" for="fileIn">Abrir gravação<input type="file" id="fileIn" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac"></label>
+      <label class="btn" for="projIn">Abrir projeto<input type="file" id="projIn" accept=".json,application/json"></label>
+      <button id="saveProj" class="ghost">Salvar projeto</button>
+    </div>
+  </header>
+
+  <section class="rec" id="recPanel" hidden aria-label="Gravar">
+    <div class="row"><h2>Gravar</h2><span class="spacer"></span><button class="ghost" id="recClose">Fechar</button></div>
+    <div class="aviso" id="recAviso" hidden></div>
+    <div class="rec-main">
+      <button class="recbtn" id="recBtn" aria-label="Começar a gravar"><span></span></button>
+      <div class="rec-clock" id="recClk">0:00.0</div>
+      <div class="nivel"><span class="lbl" id="recNivelTxt">Nível do microfone</span><div class="trilho"><div id="recNivel"></div></div></div>
+    </div>
+    <div class="hint" id="recDica">Toque no botão vermelho e toque o violino. Ao parar, a gravação abre sozinha para análise e fica guardada na lista abaixo.</div>
+    <div class="field"><span class="lbl">Gravações neste aparelho</span><div class="takes" id="takes"></div></div>
+  </section>
+
+  <section class="transport" aria-label="Reprodução">
+    <button class="playbtn" id="playBtn" aria-label="Tocar"><svg viewBox="0 0 24 24" id="playIco"><path d="M7 4l14 8-14 8z"/></svg></button>
+    <div class="clock"><span id="clk">0:00.0</span> <small>/ <span id="dur">0:00.0</span></small></div>
+    <div class="ctl"><label for="speed">Velocidade</label><input id="speed" type="range" min="0.5" max="1.25" step="0.05" value="1"><b id="speedV">100%</b></div>
+    <button id="loopBtn" title="Repete o verso selecionado sem parar">Repetir verso</button>
+    <div class="mix">
+      <div class="ch"><button id="mViol" class="on" aria-pressed="true">Violino</button><input id="vViol" type="range" min="0" max="1" step="0.05" value="0.9" aria-label="Volume do violino"></div>
+      <div class="ch"><button id="mBracsa" class="on" aria-pressed="true">Brácsa</button><input id="vBracsa" type="range" min="0" max="1" step="0.05" value="0.6" aria-label="Volume do brácsa"></div>
+      <div class="ch"><button id="mBogo" class="on" aria-pressed="true">Bőgő</button><input id="vBogo" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Volume do bőgő"></div>
+    </div>
+  </section>
+
+  <section class="tl-card">
+    <div class="bar" id="progWrap" hidden><div id="prog"></div></div>
+    <div class="tl-wrap"><canvas id="tl"></canvas></div>
+    <canvas id="ov" aria-label="Visão geral da gravação"></canvas>
+    <div class="row">
+      <div class="legend">
+        <span><i style="background:var(--red)"></i>início de verso</span>
+        <span><i style="background:var(--indigo)"></i>troca de acorde</span>
+        <span><i style="background:var(--note-in)"></i>nota dentro do acorde</span>
+        <span><i style="background:var(--note-out)"></i>nota fora</span>
+      </div>
+      <span class="spacer"></span>
+      <div class="row">
+        <button id="addV" title="Atalho: tecla V">+ Verso aqui</button>
+        <button id="addC" title="Atalho: tecla C">+ Troca aqui</button>
+        <button id="delL" title="Atalho: tecla Delete" disabled>Apagar linha</button>
+      </div>
+      <div class="zoom" aria-label="Zoom"><button id="zOut" aria-label="Afastar">−</button><button id="zFit" title="Ver a música inteira" style="width:auto;padding:0 10px">Tudo</button><button id="zIn" aria-label="Aproximar">+</button></div>
+    </div>
+    <div class="hint">Arraste as linhas para ajustar e toque numa linha para selecioná-la. Toque na onda para pular para um ponto. No computador: <kbd>Espaço</kbd> toca/pausa · <kbd>V</kbd> marca verso · <kbd>C</kbd> marca troca de acorde · <kbd>Del</kbd> apaga a linha selecionada · <kbd>←</kbd><kbd>→</kbd> passam de acorde.</div>
+  </section>
+
+  <div class="cols">
+    <div class="stack">
+      <section class="panel">
+        <h2><span class="n">1</span>Versos</h2>
+        <div class="passo">
+          <span class="lbl">Início do 1º verso (nota de chegada do felfutás)</span>
+          <input class="time" id="s1" type="text" inputmode="decimal" aria-label="Início do 1º verso">
+          <button id="s1Here">Marcar aqui</button>
+        </div>
+        <div class="passo">
+          <span class="lbl">Início do 2º verso (define a duração)</span>
+          <input class="time" id="s2" type="text" inputmode="decimal" aria-label="Início do 2º verso">
+          <button id="s2Here">Marcar aqui</button>
+        </div>
+        <div class="passo">
+          <span class="lbl">Fim da música</span>
+          <input class="time" id="sEnd" type="text" inputmode="decimal" aria-label="Fim da música">
+          <button id="endHere">Marcar aqui</button>
+        </div>
+        <div class="passo">
+          <span class="lbl">Acordes por verso</span>
+          <input id="nParts" type="number" min="1" max="32" value="8" aria-label="Acordes por verso">
+          <button class="primary" id="build">Montar versos</button>
+        </div>
+        <div class="hint">Montar versos substitui os atuais. Depois arraste as linhas vermelhas: as partes de dentro acompanham.</div>
+      </section>
+
+      <section class="panel">
+        <h2><span class="n">3</span>Acompanhamento</h2>
+        <div class="field">
+          <span class="lbl">Quem toca</span>
+          <div class="seg" role="group" aria-label="Instrumentos">
+            <button id="instB">Só brácsa</button><button id="instBB">Brácsa + bőgő</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">Estilo</span>
+          <div class="estilos" id="estilos"></div>
+        </div>
+        <div class="params" id="params"></div>
+        <div class="field">
+          <label for="beats">Tempos em cada acorde</label>
+          <div class="row"><input id="beats" type="number" min="1" max="8" value="2"><span class="hint">quantos tempos cabem em cada parte do verso</span></div>
+        </div>
+        <div class="field">
+          <label for="keySel">Tonalidade</label>
+          <select id="keySel"></select>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="row">
+        <h2><span class="n">2</span>Acordes</h2>
+        <span class="spacer"></span>
+        <button id="copyTxt">Copiar cifra</button>
+        <button id="saveTxt">Baixar .txt</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="grid-wrap"><table class="cifra" id="grid"></table></div>
+      <div class="editor" id="editor" hidden></div>
+      <details>
+        <summary>Ver a cifra em texto</summary>
+        <textarea id="txt" readonly aria-label="Cifra em texto"></textarea>
+      </details>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   Teoria: notas, acordes, tonalidade
+   ============================================================ */
+const SUST = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const BEM  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+const PT   = ["Dó","Dó#","Ré","Mib","Mi","Fá","Fá#","Sol","Láb","Lá","Sib","Si"];
+let NOMES = SUST.slice();
+const TIPOS = {
+  "":   {iv:[0,4,7],    w:[1.1,1,0.8],     rot:"maior"},
+  "m":  {iv:[0,3,7],    w:[1.1,1,0.8],     rot:"menor"},
+  "7":  {iv:[0,4,7,10], w:[1.1,1,0.7,0.6], rot:"com 7ª"},
+  "m7": {iv:[0,3,7,10], w:[1.1,1,0.7,0.6], rot:"menor com 7ª"},
+  "dim":{iv:[0,3,6],    w:[1.1,1,0.8],     rot:"diminuto"},
+};
+const VOCAB = [];
+for (const t of ["", "m", "7"]) for (let r = 0; r < 12; r++) VOCAB.push({root:r, type:t});
+const chordKey = c => c.root + ":" + c.type;
+const notasDe = c => TIPOS[c.type].iv.map(i => (c.root + i) % 12);
+const nomeAcorde = c => NOMES[c.root] + c.type;
+function grafia(c) {
+  const letras = "CDEFGAB", nat = [0,2,4,5,7,9,11], raiz = NOMES[c.root], li = letras.indexOf(raiz[0]);
+  return notasDe(c).map((n, k) => {
+    if (k === 0) return raiz;
+    const L = letras[(li + [0,2,4,6][k]) % 7];
+    const d = ((n - nat[letras.indexOf(L)] + 18) % 12) - 6;
+    return L + ({"-2":"bb","-1":"b","0":"","1":"#","2":"##"}[d] ?? "");
+  });
+}
+function pontuar(c, p) {
+  const ns = notasDe(c), w = TIPOS[c.type].w;
+  let dentro = 0, soma = 0;
+  ns.forEach((n, k) => { dentro += w[k] * p[n]; soma += p[n]; });
+  let s = dentro - 0.6 * (1 - soma);
+  if (c.type === "7" || c.type === "m7") s -= 0.08;
+  return s;
+}
+function bonusTonal(c, ton, modo) {
+  const g = (c.root - ton + 12) % 12;
+  const diat = modo === "maior"
+    ? {0:{"":.1},2:{m:.1},4:{m:.1},5:{"":.1},7:{"":.1,"7":.1},9:{m:.1}}
+    : {0:{m:.1},3:{"":.1},5:{m:.1,"":.06},7:{"":.1,"7":.1,m:.05},8:{"":.1},10:{"":.1}};
+  const b = diat[g] && diat[g][c.type];
+  if (b !== undefined) return b;
+  if (c.type === "7" || c.type === "") { const alvo = (c.root + 5) % 12; if (diat[(alvo - ton + 12) % 12]) return c.type === "7" ? 0.05 : 0.02; }
+  return -0.06;
+}
+const PMAI = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const PMEN = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+function corr(a, b) {
+  const n = a.length; let ma = 0, mb = 0;
+  for (let i = 0; i < n; i++) { ma += a[i]; mb += b[i]; }
+  ma /= n; mb /= n;
+  let sab = 0, saa = 0, sbb = 0;
+  for (let i = 0; i < n; i++) { const x = a[i]-ma, y = b[i]-mb; sab += x*y; saa += x*x; sbb += y*y; }
+  return sab / Math.sqrt(saa * sbb + 1e-12);
+}
+function definirGrafia(ton, modo) { const rel = modo === "maior" ? ton : (ton + 3) % 12; NOMES = [5,10,3,8,1].includes(rel) ? BEM.slice() : SUST.slice(); }
+
+/* ============================================================
+   Estilos de acompanhamento
+   Cada estilo devolve as arcadas de um acorde (tempos relativos ao início
+   da parte, em segundos) para brácsa e bőgő.
+   ============================================================ */
+const ESTILOS = {
+  ugros: {
+    nome: "Ugrós", curto: "ugrós",
+    desc: "Bőgő no tempo, brácsa no contratempo, arcada curta.",
+    params: {arcada: {rot: "Duração da arcada", min: 0.12, max: 0.5, passo: 0.02, val: 0.28, fmt: v => Math.round(v * 100) + "% do tempo"},
+             quinta: {rot: "Bőgő alterna fundamental e quinta", tipo: "check", val: true}},
+  },
+  dunantuli: {
+    nome: "Lassú csárdás dunántúli", curto: "dunántúli",
+    desc: "Duas arcadas ligadas em cada tempo, na cabeça do tempo. Brácsa e bőgő juntos.",
+    params: {segunda: {rot: "Onde entra a 2ª nota", min: 0.2, max: 0.8, passo: 0.05, val: 0.5, fmt: v => `1ª ${Math.round(v * 100)}% · 2ª ${Math.round((1 - v) * 100)}%`, ex: "Fração do tempo que a 1ª nota ocupa antes da 2ª arcada ligada."}},
+  },
+  fuzesi: {
+    nome: "Lassú füzesi", curto: "füzesi",
+    desc: "Uma arcada sustentada por tempo, com duas notas dentro dela.",
+    params: {pulso: {rot: "Onde fica a 2ª nota da arcada", min: 0.25, max: 0.75, passo: 0.05, val: 0.5, fmt: v => Math.round(v * 100) + "% do tempo"}},
+  },
+  ritka: {
+    nome: "Ritka füzesi", curto: "ritka",
+    desc: "Três arcadas sustentadas em cada acorde.",
+    params: {arcadas: {rot: "Arcadas por acorde", min: 2, max: 6, passo: 1, val: 3, fmt: v => v + " arcadas"}},
+  },
+  forgatos: {
+    nome: "Román forgatós", curto: "forgatós",
+    desc: "Assimétrico: ↓ ↓ ↑ iguais, um respiro curto e a última ↑ (ta-ta-ta--ta).",
+    params: {nota: {rot: "Tamanho de cada uma das 3 notas iguais", min: 0.12, max: 0.3, passo: 0.01, val: 0.21, fmt: v => Math.round(v * 100) + "% do ciclo"},
+             respiro: {rot: "Respiro antes da última nota", min: 0, max: 0.2, passo: 0.01, val: 0.07, fmt: v => Math.round(v * 100) + "% do ciclo", ex: "O 'tempinho micro' entre a 3ª nota e a última. A última nota dura o que sobra do ciclo."},
+             ciclo: {rot: "Tempos em cada ciclo", min: 1, max: 4, passo: 1, val: 2, fmt: v => v + (v > 1 ? " tempos" : " tempo")}},
+  },
+  segurado: {
+    nome: "Segurado", curto: "segurado",
+    desc: "Uma arcada longa por acorde. Bom para conferir a harmonia.",
+    params: {},
+  },
+};
+const PAUSA = {nome: "Pausa", curto: "pausa"};
+function valParam(est, k, P) { const sp = (P && P.params && P.params[k] !== undefined) ? P.params[k] : S.params[est] && S.params[est][k]; return sp !== undefined ? sp : ESTILOS[est].params[k].val; }
+/* devolve {k:[arcadas do brácsa], b:[arcadas do bőgő]}; cada arcada {t, d, at:'curto'|'ligado'|'macio', pulso?, quinta?, vel} */
+function padrao(est, D, nb, P) {
+  const B = D / nb, k = [], b = [];
+  if (est === "ugros") {
+    const a = valParam("ugros", "arcada", P), alt = valParam("ugros", "quinta", P);
+    for (let i = 0; i < nb; i++) {
+      b.push({t: i * B, d: Math.max(0.09, a * B * 1.2), at: "curto", quinta: alt && i % 2 === 1, vel: i === 0 ? 1 : 0.85});
+      k.push({t: i * B + B / 2, d: Math.max(0.07, a * B), at: "curto", vel: 0.95});
+    }
+  } else if (est === "dunantuli") {
+    const r = valParam("dunantuli", "segunda", P);
+    for (let i = 0; i < nb; i++) for (const arr of [k, b]) {
+      arr.push({t: i * B, d: r * B, at: "ligado", vel: 1});
+      arr.push({t: i * B + r * B, d: (1 - r) * B, at: "ligado", vel: 0.8, liga: true});
+    }
+  } else if (est === "fuzesi") {
+    const p = valParam("fuzesi", "pulso", P);
+    for (let i = 0; i < nb; i++) for (const arr of [k, b]) arr.push({t: i * B, d: B, at: "macio", pulso: p, vel: 1});
+  } else if (est === "ritka") {
+    const n = Math.round(valParam("ritka", "arcadas", P));
+    for (let i = 0; i < n; i++) for (const arr of [k, b]) arr.push({t: i * D / n, d: D / n, at: "macio", vel: i === 0 ? 1 : 0.85});
+  } else if (est === "forgatos") {
+    const nota = valParam("forgatos", "nota", P), resp = valParam("forgatos", "respiro", P);
+    const bpc = Math.round(valParam("forgatos", "ciclo", P)), nCic = Math.max(1, Math.round(nb / bpc)), C = D / nCic;
+    const n = Math.min(nota, (1 - resp - 0.06) / 3); // garante que sobra espaço para a última
+    for (let c = 0; c < nCic; c++) {
+      const t0 = c * C, ult = t0 + (3 * n + resp) * C;
+      const golpes = [
+        {t: t0, d: n * C, dir: "↓", vel: 1},
+        {t: t0 + n * C, d: n * C, dir: "↓", vel: 0.8},
+        {t: t0 + 2 * n * C, d: n * C, dir: "↑", vel: 0.85},
+        {t: ult, d: C - (ult - t0), dir: "↑", vel: 0.9},
+      ];
+      for (const g of golpes) { k.push({...g, d: Math.max(0.06, g.d * 0.92), at: "curto"}); b.push({...g, d: Math.max(0.08, g.d * 0.95), at: "curto"}); }
+    }
+  } else if (est === "segurado") {
+    k.push({t: 0, d: D, at: "macio", vel: 0.9}); b.push({t: 0, d: Math.min(D, 1.6), at: "macio", vel: 1});
+  }
+  return {k, b};
+}
+
+/* ============================================================
+   Estado
+   ============================================================ */
+const S = {
+  nome: "", dur: 0, url: null,
+  an: null, keyAuto: {ton: 9, modo: "menor"}, keyOverride: null,
+  verses: [], end: 0, nParts: 8,
+  estilo: "ugros", params: {}, beats: 2, inst: "ambos",
+  sug: [], sel: null, selLine: null,
+  view: {t0: 0, pps: 40}, playing: false, loop: false, speed: 1,
+};
+const $ = id => document.getElementById(id);
+const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60); const r = s - m * 60; return m + ":" + (r < 10 ? "0" : "") + r.toFixed(1); };
+function parseT(txt) {
+  txt = String(txt || "").trim().replace(",", ".");
+  if (!txt) return null;
+  if (txt.includes(":")) { const [m, s] = txt.split(":"); const v = (+m) * 60 + (+s); return isFinite(v) ? v : null; }
+  const v = +txt; return isFinite(v) ? v : null;
+}
+function setStatus(msg, err) { const el = $("status"); el.textContent = msg || ""; el.classList.toggle("err", !!err); }
+
+/* ============================================================
+   Análise de áudio
+   ============================================================ */
+const SR = 22050, NFFT = 4096, HOP = 512, FPS = SR / HOP;
+const NMIN = 52, NMAX = 100, NN = NMAX - NMIN + 1;
+function fftReal(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const a = i + k, b = a + len / 2;
+        const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+        const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr;
+      }
+    }
+  }
+}
+const HANN = new Float32Array(NFFT).map((_, i) => 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (NFFT - 1)));
+function espectro(y, f, re, im, mag) {
+  const c = f * HOP - NFFT / 2;
+  for (let i = 0; i < NFFT; i++) { const j = c + i; re[i] = (j >= 0 && j < y.length ? y[j] : 0) * HANN[i]; im[i] = 0; }
+  fftReal(re, im);
+  for (let i = 0; i <= NFFT / 2; i++) mag[i] = Math.hypot(re[i], im[i]);
+}
+const tick = () => new Promise(r => setTimeout(r, 0));
+async function analisar(y, onProg) {
+  const nF = Math.ceil(y.length / HOP);
+  const re = new Float32Array(NFFT), im = new Float32Array(NFFT), mag = new Float32Array(NFFT / 2 + 1);
+  const fb = SR / NFFT;
+  let cs = 0, sn = 0, cnt = 0;
+  const lo = Math.floor(180 / fb), hi = Math.floor(2000 / fb);
+  for (let f = 0; f < nF; f += 6) {
+    espectro(y, f, re, im, mag);
+    let k = lo; for (let i = lo; i < hi; i++) if (mag[i] > mag[k]) k = i;
+    if (mag[k] < 2) continue;
+    const a = Math.log(mag[k-1]+1e-9), b = Math.log(mag[k]+1e-9), c = Math.log(mag[k+1]+1e-9), den = a - 2*b + c;
+    if (den >= 0) continue;
+    const fr = (k + 0.5 * (a - c) / den) * fb, m = 69 + 12 * Math.log2(fr / 440), d = m - Math.round(m);
+    cs += Math.cos(2 * Math.PI * d) * mag[k]; sn += Math.sin(2 * Math.PI * d) * mag[k]; cnt++;
+    if (f % 240 === 0) { onProg(0.15 * f / nF); await tick(); }
+  }
+  const ref = cnt > 20 ? 440 * Math.pow(2, Math.atan2(sn, cs) / (2 * Math.PI) / 12) : 440;
+  const bins = [];
+  for (let j = 0; j < NN; j++) {
+    const f0 = ref * Math.pow(2, (NMIN + j - 69) / 12), arr = [];
+    for (let h = 1; h <= 6; h++) { const b = Math.round(h * f0 / fb); if (b + 1 < NFFT / 2) arr.push(b); }
+    bins.push(arr);
+  }
+  const sal = new Float32Array(nF * NN), energia = new Float32Array(nF), lg = new Float32Array(NFFT / 2 + 1);
+  for (let f = 0; f < nF; f++) {
+    espectro(y, f, re, im, mag);
+    let e = 0;
+    for (let i = 0; i <= NFFT / 2; i++) { lg[i] = Math.log1p(mag[i] * 0.2); e += lg[i]; }
+    energia[f] = e;
+    let mx = 0;
+    for (let j = 0; j < NN; j++) {
+      const bs = bins[j]; let tot = 0, fund = 0;
+      for (let h = 0; h < bs.length; h++) { const b = bs[h], v = Math.max(lg[b-1], lg[b], lg[b+1]); if (h === 0) fund = v; tot += Math.pow(0.8, h) * v; }
+      const g = Math.min(1, Math.max(0, fund / (0.35 * tot / 6 + 1e-6)));
+      const v = tot * g; sal[f * NN + j] = v; if (v > mx) mx = v;
+    }
+    for (let j = 0; j < NN; j++) if (sal[f*NN+j] < 0.45 * mx) sal[f*NN+j] = 0;
+    for (let j = 0; j < NN; j++) {
+      const v = sal[f*NN+j]; if (!v) continue;
+      for (const d of [12,19,24,28,31]) { const k = j + d; if (k < NN && sal[f*NN+k] > 0 && sal[f*NN+k] < 1.15 * v) sal[f*NN+k] = 0; }
+    }
+    if (f % 150 === 0) { onProg(0.15 + 0.8 * f / nF); await tick(); }
+  }
+  const eOrd = Array.from(energia).sort((a, b) => a - b), p95 = eOrd[Math.floor(0.95 * (eOrd.length - 1))];
+  const croma = new Float32Array(nF * 12), top = new Int16Array(nF).fill(-1);
+  for (let f = 0; f < nF; f++) {
+    if (energia[f] < 0.08 * p95) continue;
+    let best = -1, bv = 0;
+    for (let j = 0; j < NN; j++) { const v = sal[f*NN+j]; if (v > 0) { croma[f*12 + (NMIN + j) % 12] += v; if (v > bv) { bv = v; best = j; } } }
+    if (best >= 0) top[f] = NMIN + best;
+  }
+  const cum = new Float64Array((nF + 1) * 12);
+  for (let f = 0; f < nF; f++) for (let k = 0; k < 12; k++) cum[(f+1)*12+k] = cum[f*12+k] + croma[f*12+k];
+  const sm = Int16Array.from(top);
+  for (let i = 2; i < nF - 2; i++) {
+    const c = {}; let bm = top[i], bc = 0;
+    for (let k = -2; k <= 2; k++) { const v = top[i+k]; if (v < 0) continue; c[v] = (c[v] || 0) + 1; if (c[v] > bc) { bc = c[v]; bm = v; } }
+    sm[i] = bc > 2 ? bm : top[i];
+  }
+  const notas = [];
+  let ini = 0;
+  for (let i = 1; i <= nF; i++) {
+    if (i === nF || sm[i] !== sm[ini]) {
+      const d = (i - ini) / FPS;
+      if (sm[ini] >= 0 && d >= 0.06) notas.push({s: ini / FPS, e: i / FPS, m: sm[ini]});
+      else if (sm[ini] >= 0 && notas.length && notas[notas.length-1].m === sm[ini]) notas[notas.length-1].e = i / FPS;
+      ini = i;
+    }
+  }
+  const tot = new Array(12).fill(0);
+  for (let k = 0; k < 12; k++) tot[k] = cum[nF*12+k];
+  onProg(1);
+  return {nF, ref, cum, top: sm, notas, tot};
+}
+function perfil(a, b) {
+  const an = S.an, p = new Array(12).fill(0);
+  if (!an) return p;
+  const fa = Math.max(0, Math.min(an.nF, Math.floor(a * FPS))), fb = Math.max(fa, Math.min(an.nF, Math.floor(b * FPS)));
+  const fq = Math.min(fb, fa + Math.max(1, Math.floor((fb - fa) / 4)));
+  for (let k = 0; k < 12; k++) p[k] = (an.cum[fb*12+k] - an.cum[fa*12+k]) + 0.3 * (an.cum[fq*12+k] - an.cum[fa*12+k]);
+  return p;
+}
+const norm = p => { const s = p.reduce((x, y) => x + y, 0); return s > 0 ? p.map(x => x / s) : p.map(() => 0); };
+function estimarTom() {
+  const an = S.an; if (!an) return;
+  const cands = [];
+  for (let t = 0; t < 12; t++) for (const [modo, P] of [["maior", PMAI], ["menor", PMEN]]) cands.push({r: corr(an.tot, P.map((_, i) => P[(i - t + 12) % 12])), ton: t, modo});
+  cands.sort((a, b) => b.r - a.r);
+  const fatias = [];
+  for (let t = 0; t < S.dur; t += 1) { const p = perfil(t, t + 1); if (p.some(x => x > 0)) fatias.push(norm(p)); }
+  let best = null;
+  for (const c of cands.slice(0, 4)) {
+    let fit = 0;
+    for (const p of fatias) { let mx = -9; for (const a of VOCAB) mx = Math.max(mx, pontuar(a, p) + bonusTonal(a, c.ton, c.modo)); fit += mx; }
+    const nota = fit / Math.max(1, fatias.length) + 0.3 * c.r;
+    if (!best || nota > best.nota) best = {nota, ton: c.ton, modo: c.modo};
+  }
+  S.keyAuto = {ton: best.ton, modo: best.modo};
+}
+const tom = () => S.keyOverride || S.keyAuto;
+
+/* ============================================================
+   Estrutura: versos e partes
+   ============================================================ */
+function vEnd(v) { return v + 1 < S.verses.length ? S.verses[v + 1].start : S.end; }
+function bordas(v) {
+  const V = S.verses[v], a = V.start, b = vEnd(v), n = V.n, out = [a];
+  for (let k = 1; k < n; k++) out.push(a + (V.cuts ? V.cuts[k - 1] : k / n) * (b - a));
+  out.push(b);
+  return out;
+}
+const parteVazia = () => ({chord: null, style: null, beats: null});
+function novoVerso(start, n) { return {start, n, cuts: null, parts: Array.from({length: n}, parteVazia)}; }
+function redimensionar(V, n) { V.n = n; V.cuts = null; while (V.parts.length < n) V.parts.push(parteVazia()); V.parts.length = n; }
+function montarVersos() {
+  const s1 = parseT($("s1").value), s2 = parseT($("s2").value), fim = parseT($("sEnd").value);
+  const n = Math.max(1, Math.min(32, parseInt($("nParts").value) || 8));
+  if (s1 === null) { setStatus("Marque onde começa o 1º verso.", true); return; }
+  if (s2 === null || s2 <= s1 + 0.5) { setStatus("Marque onde começa o 2º verso (depois do 1º).", true); return; }
+  const end = fim !== null && fim > s2 ? Math.min(fim, S.dur) : S.dur, D = s2 - s1;
+  S.verses = []; S.end = end; S.nParts = n;
+  for (let t = s1; t < end - 0.5 * D; t += D) S.verses.push(novoVerso(t, n));
+  if (!S.verses.length) S.verses.push(novoVerso(s1, n));
+  S.sel = {v: 0, p: 0}; S.selLine = null;
+  setStatus(`${S.verses.length} versos de ${D.toFixed(1)} s, ${n} acordes cada. Arraste as linhas para acertar.`);
+  mudouEstrutura();
+}
+function inserirVerso(t) {
+  if (!S.verses.length) { S.verses.push(novoVerso(t, S.nParts)); S.end = Math.max(S.end, Math.min(S.dur, t + 8)); mudouEstrutura(); return; }
+  if (t < S.verses[0].start - 0.3) { S.verses.unshift(novoVerso(t, S.nParts)); mudouEstrutura(); return; }
+  if (t > S.end) { S.verses.push(novoVerso(S.end, S.nParts)); S.end = Math.min(S.dur, t); mudouEstrutura(); return; }
+  for (let v = 0; v < S.verses.length; v++) {
+    if (t > S.verses[v].start + 0.3 && t < vEnd(v) - 0.3) {
+      S.verses[v].cuts = null;
+      S.verses.splice(v + 1, 0, novoVerso(t, S.verses[v].n));
+      S.selLine = {kind: "verse", v: v + 1};
+      mudouEstrutura(); return;
+    }
+  }
+}
+function inserirCorte(t) {
+  for (let v = 0; v < S.verses.length; v++) {
+    const b = bordas(v);
+    if (t <= b[0] || t >= b[b.length - 1]) continue;
+    const V = S.verses[v], fr = (t - b[0]) / (b[b.length - 1] - b[0]);
+    const cuts = V.cuts ? V.cuts.slice() : Array.from({length: V.n - 1}, (_, k) => (k + 1) / V.n);
+    let k = 0; while (k < cuts.length && cuts[k] < fr) k++;
+    cuts.splice(k, 0, fr); V.cuts = cuts; V.n += 1; V.parts.splice(k + 1, 0, parteVazia());
+    S.selLine = {kind: "cut", v, k};
+    mudouEstrutura(); return;
+  }
+}
+function apagarLinha() {
+  const L = S.selLine; if (!L) return;
+  if (L.kind === "cut") {
+    const V = S.verses[L.v];
+    const cuts = V.cuts ? V.cuts.slice() : Array.from({length: V.n - 1}, (_, k) => (k + 1) / V.n);
+    cuts.splice(L.k, 1); V.cuts = cuts; V.n -= 1; V.parts.splice(L.k + 1, 1);
+  } else if (L.kind === "verse") {
+    if (L.v === 0) S.verses.shift(); else { S.verses[L.v - 1].cuts = null; S.verses.splice(L.v, 1); }
+  }
+  S.selLine = null; S.sel = null;
+  mudouEstrutura();
+}
+
+/* ============================================================
+   Sugestões de acorde
+   ============================================================ */
+function grade(v) {
+  const an = S.an, a = S.verses[v].start, b = vEnd(v), g = new Int8Array(64).fill(-1);
+  for (let i = 0; i < 64; i++) { const f = Math.floor((a + (i + 0.5) / 64 * (b - a)) * FPS); if (f >= 0 && f < an.nF && an.top[f] >= 0) g[i] = an.top[f] % 12; }
+  return g;
+}
+function calcular() {
+  S.sug = [];
+  if (!S.an || !S.verses.length) return;
+  const {ton, modo} = tom();
+  definirGrafia(ton, modo);
+  const nv = S.verses.length, grades = S.verses.map((_, v) => grade(v));
+  const perfis = S.verses.map((V, v) => { const b = bordas(v); return V.parts.map((_, k) => perfil(b[k], b[k + 1])); });
+  const comb = perfis.map(ps => ps.map(p => p.slice())), parecidos = S.verses.map(() => []);
+  for (let i = 0; i < nv; i++) for (let j = 0; j < nv; j++) {
+    if (i === j || S.verses[i].n !== S.verses[j].n) continue;
+    let ok = 0, eq = 0;
+    for (let q = 0; q < 64; q++) if (grades[i][q] >= 0 && grades[j][q] >= 0) { ok++; if (grades[i][q] === grades[j][q]) eq++; }
+    const sim = ok > 8 ? eq / ok : 0;
+    if (sim > 0.4) { parecidos[i].push(j); perfis[j].forEach((p, k) => { for (let c = 0; c < 12; c++) comb[i][k][c] += 0.8 * sim * p[c]; }); }
+  }
+  const seq = [];
+  S.verses.forEach((V, v) => V.parts.forEach((P, k) => seq.push({v, k, p: norm(comb[v][k]), vazio: !comb[v][k].some(x => x > 0), fixo: P.chord})));
+  const K = VOCAB.length, TROCA = 0.06;
+  const G = seq.map(s => VOCAB.map(a => s.vazio ? 0 : pontuar(a, s.p) + bonusTonal(a, ton, modo)));
+  seq.forEach((s, i) => { if (s.fixo) { const fk = chordKey(s.fixo); VOCAB.forEach((a, j) => { G[i][j] = chordKey(a) === fk ? 10 : -10; }); } });
+  let best = G[0].slice(); const back = [];
+  for (let i = 1; i < seq.length; i++) {
+    let mj = 0; for (let j = 1; j < K; j++) if (best[j] > best[mj]) mj = j;
+    const troca = best[mj] - TROCA, nb = new Array(K), bk = new Int16Array(K);
+    for (let j = 0; j < K; j++) { if (best[j] >= troca) { nb[j] = best[j] + G[i][j]; bk[j] = j; } else { nb[j] = troca + G[i][j]; bk[j] = mj; } }
+    back.push(bk); best = nb;
+  }
+  let j = 0; for (let q = 1; q < K; q++) if (best[q] > best[j]) j = q;
+  const escolha = new Array(seq.length); escolha[seq.length - 1] = j;
+  for (let i = seq.length - 1; i > 0; i--) { j = back[i - 1][j]; escolha[i - 1] = j; }
+  S.verses.forEach(() => S.sug.push([]));
+  let ant = null;
+  seq.forEach((s, i) => {
+    const local = VOCAB.map(a => ({a, g: s.vazio ? 0 : pontuar(a, s.p) + bonusTonal(a, ton, modo), cob: notasDe(a).reduce((x, n) => x + s.p[n], 0)})).sort((x, y) => y.g - x.g);
+    let ac = VOCAB[escolha[i]];
+    if (s.vazio && ant) ac = ant;
+    const meu = s.vazio ? 0 : pontuar(ac, s.p) + bonusTonal(ac, ton, modo);
+    const outro = local.find(x => chordKey(x.a) !== chordKey(ac));
+    S.sug[s.v][s.k] = {best: ac, alts: local.slice(0, 6), conf: s.vazio ? null : meu - (outro ? outro.g : 0), parecidos: parecidos[s.v]};
+    ant = s.fixo || ac;
+  });
+}
+function acordeFinal(v, k) { const P = S.verses[v].parts[k]; return P.chord || (S.sug[v] && S.sug[v][k] ? S.sug[v][k].best : null); }
+
+/* ============================================================
+   Linha do tempo
+   ============================================================ */
+const cv = $("tl"), ctx = cv.getContext("2d"), ov = $("ov"), octx = ov.getContext("2d");
+let ondaMin = null, ondaMax = null;
+const ondaRes = 200;
+function prepararOnda(y) {
+  const n = Math.ceil(y.length / SR * ondaRes); ondaMin = new Float32Array(n); ondaMax = new Float32Array(n);
+  const passo = SR / ondaRes;
+  for (let i = 0; i < n; i++) { let mn = 0, mx = 0; const a = Math.floor(i * passo), b = Math.min(y.length, Math.floor((i + 1) * passo)); for (let j = a; j < b; j++) { const v = y[j]; if (v < mn) mn = v; if (v > mx) mx = v; } ondaMin[i] = mn; ondaMax[i] = mx; }
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let COR = {}, MONO = "monospace";
+function lerCores() { for (const k of ["bg","surface","raised","sunk","ink","muted","line","red","red-soft","indigo","indigo-soft","wave","note-in","note-out","warn"]) COR[k] = css("--" + k); MONO = css("--font-mono"); }
+const Y = {regua: 0, acordes: 18, onda: 46, notas: 168, fim: 300};
+const tx = t => (t - S.view.t0) * S.view.pps, xt = x => S.view.t0 + x / S.view.pps;
+function tamanhoCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  for (const c of [cv, ov]) { const w = c.clientWidth, h = c.clientHeight; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0); }
+}
+function acordeEm(t) {
+  for (let v = 0; v < S.verses.length; v++) { const b = bordas(v); if (t >= b[0] && t < b[b.length-1]) { let k = 0; while (k < S.verses[v].n - 1 && t >= b[k+1]) k++; return acordeFinal(v, k); } }
+  return null;
+}
+function parteEm(t) {
+  for (let v = 0; v < S.verses.length; v++) { const b = bordas(v); if (t >= b[0] && t < b[b.length-1]) { for (let k = 0; k < S.verses[v].n; k++) if (t < b[k+1]) return {v, p: k}; } }
+  return null;
+}
+function desenhar() {
+  $("delL").disabled = !(S.selLine && S.selLine.kind !== "end");
+  const W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = COR.sunk; ctx.fillRect(0, 0, W, H);
+  if (!S.dur) return;
+  const t0 = S.view.t0, t1 = xt(W);
+  S.verses.forEach((V, v) => {
+    const b = bordas(v);
+    if (v % 2 === 0) { ctx.fillStyle = COR["red-soft"]; ctx.fillRect(tx(b[0]), Y.acordes, tx(b[b.length-1]) - tx(b[0]), H - Y.acordes); }
+    if (S.sel && S.sel.v === v) { const k = S.sel.p; ctx.fillStyle = COR["indigo-soft"]; ctx.fillRect(tx(b[k]), Y.acordes, tx(b[k+1]) - tx(b[k]), H - Y.acordes); }
+  });
+  if (S.loop && S.sel && S.verses[S.sel.v]) { const b = bordas(S.sel.v); ctx.fillStyle = COR.indigo; ctx.fillRect(tx(b[0]), H - 4, tx(b[b.length-1]) - tx(b[0]), 4); }
+  ctx.fillStyle = COR.muted; ctx.font = "10px " + MONO; ctx.strokeStyle = COR.line; ctx.lineWidth = 1;
+  const pr = [0.5, 1, 2, 5, 10, 15, 30, 60].find(p => p * S.view.pps >= 60) || 60;
+  for (let t = Math.ceil(t0 / pr) * pr; t <= t1; t += pr) { const x = Math.round(tx(t)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 12); ctx.lineTo(x, Y.acordes); ctx.stroke(); ctx.fillText(fmt(t).replace(/\.0$/, ""), x + 3, 10); }
+  const mid = (Y.onda + Y.notas) / 2, amp = (Y.notas - Y.onda) / 2 - 4;
+  ctx.fillStyle = COR.wave;
+  if (ondaMax) for (let x = 0; x < W; x++) {
+    const ia = Math.floor(xt(x) * ondaRes), ib = Math.max(ia + 1, Math.floor(xt(x + 1) * ondaRes));
+    let mn = 0, mx = 0; for (let i = Math.max(0, ia); i < ib && i < ondaMax.length; i++) { if (ondaMin[i] < mn) mn = ondaMin[i]; if (ondaMax[i] > mx) mx = ondaMax[i]; }
+    ctx.fillRect(x, mid - mx * amp, 1, Math.max(1, (mx - mn) * amp));
+  }
+  if (S.an) {
+    const ns = S.an.notas; let lo = 127, hi = 0;
+    for (const n of ns) { if (n.m < lo) lo = n.m; if (n.m > hi) hi = n.m; }
+    lo -= 1; hi += 1; const hN = (Y.fim - Y.notas - 8) / Math.max(12, hi - lo);
+    ctx.strokeStyle = COR.line; ctx.lineWidth = 1; ctx.font = "10px " + MONO;
+    for (let m = lo; m <= hi; m++) if (m % 12 === 9) { const yy = Math.round(Y.fim - 4 - (m - lo) * hN) + 0.5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke(); ctx.fillStyle = COR.muted; ctx.fillText("A" + (Math.floor(m / 12) - 1), 3, yy - 2); }
+    for (const n of ns) {
+      if (n.e < t0 || n.s > t1) continue;
+      const ac = acordeEm((n.s + n.e) / 2), dentro = ac && notasDe(ac).includes(n.m % 12);
+      ctx.fillStyle = dentro ? COR["note-in"] : COR["note-out"];
+      const x = tx(n.s), w = Math.max(2, tx(n.e) - x - 1), yy = Y.fim - 4 - (n.m - lo + 0.5) * hN;
+      ctx.fillRect(x, yy - Math.max(2, hN * 0.4), w, Math.max(3, hN * 0.8));
+      if (w > 18 && S.view.pps > 60) { ctx.fillStyle = COR.ink; ctx.fillText(NOMES[n.m % 12], x + 1, yy - hN * 0.5 - 2); }
+    }
+  }
+  S.verses.forEach((V, v) => {
+    const b = bordas(v);
+    for (let k = 0; k < V.n; k++) {
+      const ac = acordeFinal(v, k), x0 = tx(b[k]), x1 = tx(b[k+1]);
+      if (x1 < 0 || x0 > W) continue;
+      if (k > 0) {
+        const sel = S.selLine && S.selLine.kind === "cut" && S.selLine.v === v && S.selLine.k === k - 1;
+        ctx.strokeStyle = COR.indigo; ctx.lineWidth = sel ? 3 : 1.5; ctx.setLineDash(sel ? [] : [5, 4]);
+        ctx.beginPath(); ctx.moveTo(Math.round(x0) + 0.5, Y.acordes); ctx.lineTo(Math.round(x0) + 0.5, H); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = COR.indigo; ctx.fillRect(Math.round(x0) - 3, Y.acordes, 7, 7);
+      }
+      if (ac && x1 - x0 > 14) {
+        const ant = k > 0 ? acordeFinal(v, k - 1) : null;
+        const txt = ant && chordKey(ant) === chordKey(ac) ? "–" : nomeAcorde(ac);
+        ctx.fillStyle = V.parts[k].chord ? COR.red : COR.ink; ctx.font = "600 12px " + MONO;
+        ctx.save(); ctx.beginPath(); ctx.rect(x0 + 2, Y.acordes, x1 - x0 - 4, 24); ctx.clip(); ctx.fillText(txt, x0 + 6, Y.acordes + 17); ctx.restore();
+      }
+    }
+    const x = tx(V.start);
+    if (x >= -30 && x <= W + 30) {
+      const sel = S.selLine && S.selLine.kind === "verse" && S.selLine.v === v;
+      ctx.strokeStyle = COR.red; ctx.lineWidth = sel ? 4 : 2.5;
+      ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, Y.acordes - 4); ctx.lineTo(Math.round(x) + 0.5, H); ctx.stroke();
+      ctx.fillStyle = COR.red; ctx.fillRect(Math.round(x) - 1, Y.acordes - 4, 26, 15);
+      ctx.fillStyle = COR.bg; ctx.font = "700 10px " + MONO; ctx.fillText("V" + (v + 1), Math.round(x) + 3, Y.acordes + 7);
+    }
+  });
+  if (S.verses.length) {
+    const x = tx(S.end), sel = S.selLine && S.selLine.kind === "end";
+    ctx.strokeStyle = COR.ink; ctx.lineWidth = sel ? 4 : 2; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, Y.acordes - 4); ctx.lineTo(Math.round(x) + 0.5, H); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = COR.ink; ctx.font = "700 10px " + MONO; ctx.fillText("fim", Math.round(x) + 4, Y.acordes + 7);
+  }
+  const xp = tx(tempoAtual());
+  ctx.strokeStyle = COR.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, H); ctx.stroke();
+  ctx.fillStyle = COR.ink; ctx.beginPath(); ctx.moveTo(xp - 5, 0); ctx.lineTo(xp + 5, 0); ctx.lineTo(xp, 7); ctx.fill();
+  desenharVisao();
+}
+function desenharVisao() {
+  const W = ov.clientWidth, H = ov.clientHeight;
+  octx.clearRect(0, 0, W, H); octx.fillStyle = COR.sunk; octx.fillRect(0, 0, W, H);
+  if (!S.dur || !ondaMax) return;
+  octx.fillStyle = COR.wave;
+  const porPx = ondaMax.length / W;
+  for (let x = 0; x < W; x++) { let mx = 0; for (let i = Math.floor(x * porPx); i < Math.floor((x + 1) * porPx); i++) mx = Math.max(mx, ondaMax[i], -ondaMin[i]); octx.fillRect(x, H / 2 - mx * H / 2, 1, Math.max(1, mx * H)); }
+  octx.fillStyle = COR.red;
+  S.verses.forEach(V => octx.fillRect(V.start / S.dur * W, 0, 2, H));
+  const a = S.view.t0 / S.dur * W, b = Math.min(W, xt(cv.clientWidth) / S.dur * W);
+  octx.strokeStyle = COR.ink; octx.lineWidth = 2; octx.strokeRect(a + 1, 1, Math.max(4, b - a - 2), H - 2);
+  octx.fillStyle = COR.ink; octx.fillRect(tempoAtual() / S.dur * W, 0, 1.5, H);
+}
+
+/* interação com a linha do tempo */
+let tolerancia = 9;
+function linhaPerto(x) {
+  let melhor = null, dm = tolerancia;
+  S.verses.forEach((V, v) => {
+    const b = bordas(v);
+    const d0 = Math.abs(tx(b[0]) - x); if (d0 < dm) { dm = d0; melhor = {kind: "verse", v}; }
+    for (let k = 1; k < V.n; k++) { const d = Math.abs(tx(b[k]) - x); if (d < dm - 1) { dm = d; melhor = {kind: "cut", v, k: k - 1}; } }
+  });
+  if (S.verses.length) { const d = Math.abs(tx(S.end) - x); if (d < dm) melhor = {kind: "end"}; }
+  return melhor;
+}
+let arrasto = null;
+cv.addEventListener("pointerdown", e => {
+  if (!S.dur) return;
+  tolerancia = e.pointerType === "touch" ? 18 : 9;
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const L = y > Y.acordes - 6 ? linhaPerto(x) : null;
+  if (L) { S.selLine = L; arrasto = {L, moveu: false}; cv.setPointerCapture(e.pointerId); desenhar(); return; }
+  if (y < Y.acordes) { arrasto = {pan: true, x0: x, t0: S.view.t0}; cv.setPointerCapture(e.pointerId); return; }
+  S.selLine = null;
+  const t = xt(x);
+  audio.irPara(t);
+  const pe = parteEm(t); if (pe) { S.sel = pe; renderGrade(); renderEditor(); }
+  desenhar();
+});
+cv.addEventListener("pointermove", e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (!arrasto) { cv.style.cursor = (y > Y.acordes - 6 && linhaPerto(x)) ? "ew-resize" : (y < Y.acordes ? "grab" : "crosshair"); return; }
+  if (arrasto.pan) { S.view.t0 = limitarT0(arrasto.t0 - (x - arrasto.x0) / S.view.pps); desenhar(); return; }
+  arrasto.moveu = true; moverLinha(arrasto.L, xt(x)); desenhar();
+});
+cv.addEventListener("pointerup", () => { if (arrasto && arrasto.moveu) mudouEstrutura(); arrasto = null; });
+cv.addEventListener("pointercancel", () => { arrasto = null; });
+cv.addEventListener("wheel", e => {
+  if (!S.dur) return;
+  if (e.ctrlKey || e.metaKey) { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomEm(e.deltaY < 0 ? 1.25 : 0.8, e.clientX - r.left); return; }
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+  if (!d) return;
+  e.preventDefault(); S.view.t0 = limitarT0(S.view.t0 + d / S.view.pps); desenhar();
+}, {passive: false});
+function moverLinha(L, t) {
+  const MIN = 0.12;
+  if (L.kind === "verse") {
+    const v = L.v, ant = v > 0 ? bordas(v - 1) : null, b = bordas(v);
+    S.verses[v].start = Math.max(ant ? ant[ant.length - 2] + MIN : 0, Math.min(b[1] - MIN, t));
+  } else if (L.kind === "cut") {
+    const V = S.verses[L.v], b = bordas(L.v), a = b[0], z = b[b.length - 1];
+    const cuts = V.cuts ? V.cuts.slice() : Array.from({length: V.n - 1}, (_, k) => (k + 1) / V.n);
+    const lo = (L.k > 0 ? cuts[L.k - 1] : 0) + MIN / (z - a), hi = (L.k < cuts.length - 1 ? cuts[L.k + 1] : 1) - MIN / (z - a);
+    cuts[L.k] = Math.max(lo, Math.min(hi, (t - a) / (z - a))); V.cuts = cuts;
+  } else if (L.kind === "end") {
+    const b = bordas(S.verses.length - 1);
+    S.end = Math.max(b[b.length - 2] + MIN, Math.min(S.dur, t));
+  }
+}
+function limitarT0(t) { const vis = cv.clientWidth / S.view.pps; return Math.max(0, Math.min(Math.max(0, S.dur - vis * 0.9), t)); }
+function ppsMin() { return (cv.clientWidth || 600) / Math.max(1, S.dur || 10); }
+function zoomEm(fator, x) {
+  if (x === undefined) x = cv.clientWidth / 2;
+  const t = xt(x);
+  S.view.pps = Math.max(ppsMin(), Math.min(400, S.view.pps * fator));
+  S.view.t0 = limitarT0(t - x / S.view.pps); desenhar();
+}
+$("zIn").onclick = () => zoomEm(1.5);
+$("addV").onclick = () => inserirVerso(tempoAtual());
+$("addC").onclick = () => inserirCorte(tempoAtual());
+$("delL").onclick = () => apagarLinha();
+$("zOut").onclick = () => zoomEm(1 / 1.5);
+$("zFit").onclick = () => { S.view.pps = ppsMin(); S.view.t0 = 0; desenhar(); };
+let arrOv = false;
+function ovIr(e) { const r = ov.getBoundingClientRect(); const t = (e.clientX - r.left) / r.width * S.dur; S.view.t0 = limitarT0(t - cv.clientWidth / S.view.pps / 2); desenhar(); }
+ov.addEventListener("pointerdown", e => { if (!S.dur) return; arrOv = true; ov.setPointerCapture(e.pointerId); ovIr(e); });
+ov.addEventListener("pointermove", e => { if (arrOv) ovIr(e); });
+ov.addEventListener("pointerup", () => { arrOv = false; });
+document.addEventListener("keydown", e => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (["input", "select", "textarea"].includes(tag) && e.target.type !== "range") return;
+  if (e.code === "Space") { e.preventDefault(); if (grav.rec && grav.rec.state === "recording") pararGravacao(); else alternarPlay(); }
+  else if (e.key === "v" || e.key === "V") inserirVerso(tempoAtual());
+  else if (e.key === "c" || e.key === "C") inserirCorte(tempoAtual());
+  else if (e.key === "Delete" || e.key === "Backspace") { if (S.selLine) { e.preventDefault(); apagarLinha(); } }
+  else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); passarParte(e.key === "ArrowRight" ? 1 : -1); }
+});
+function passarParte(d) {
+  if (!S.verses.length) return;
+  let {v, p} = S.sel || {v: 0, p: -1};
+  p += d;
+  if (p >= S.verses[v].n) { v++; p = 0; } if (p < 0) { v--; if (v >= 0) p = S.verses[v].n - 1; }
+  if (v < 0 || v >= S.verses.length) return;
+  S.sel = {v, p}; const b = bordas(v);
+  if (!S.playing) audio.irPara(b[p]);
+  garantirVisivel(b[p]); renderGrade(); renderEditor(); desenhar();
+}
+function garantirVisivel(t) { const vis = cv.clientWidth / S.view.pps; if (t < S.view.t0 || t > S.view.t0 + vis * 0.92) S.view.t0 = limitarT0(t - vis * 0.25); }
+
+/* ============================================================
+   Áudio: gravação (com velocidade sem mudar a afinação) + acompanhamento
+   ============================================================ */
+const el = new Audio();
+el.preload = "auto";
+el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true;
+const audio = {
+  ctx: null, gV: null, gK: null, gB: null, acomp: null, ligado: false,
+  eventos: [], prox: 0, timer: null, pos: 0, ultimo: 0,
+  garantir() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AC();
+    this.gV = this.ctx.createGain(); this.gV.connect(this.ctx.destination);
+    this.gK = this.ctx.createGain(); this.gB = this.ctx.createGain();
+    const comp = this.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; comp.connect(this.ctx.destination);
+    this.gK.connect(comp); this.gB.connect(comp); this.saida = comp;
+    volumes();
+  },
+  ligarGravacao() {
+    if (this.ligado) return;
+    try { const src = this.ctx.createMediaElementSource(el); src.connect(this.gV); this.ligado = true; } catch (e) { this.ligado = true; }
+  },
+  agora() { return S.playing ? el.currentTime : this.pos; },
+  irPara(t) {
+    t = Math.max(0, Math.min(S.dur, t)); this.pos = t;
+    if (S.playing) { this.cortarAcomp(); el.currentTime = t; this.ultimo = t; this.acharProx(t); }
+    atualizarRelogio();
+  },
+  acharProx(t) { this.prox = this.eventos.findIndex(ev => ev.t >= t - 0.005); if (this.prox < 0) this.prox = this.eventos.length; },
+  async tocar() {
+    if (!S.url) return;
+    this.garantir(); this.ligarGravacao();
+    if (this.ctx.state === "suspended") await this.ctx.resume();
+    if (this.pos >= S.dur - 0.05) this.pos = 0;
+    el.playbackRate = S.speed;
+    el.currentTime = this.pos;
+    this.novoAcomp();
+    try { await el.play(); } catch (e) { setStatus("O navegador não deixou tocar. Toque no botão de novo.", true); return; }
+    S.playing = true; iconePlay();
+    this.ultimo = this.pos; this.acharProx(this.pos);
+    clearInterval(this.timer); this.timer = setInterval(() => this.agendar(), 30);
+    laco();
+  },
+  parar() {
+    if (!S.playing) return;
+    this.pos = el.currentTime; el.pause();
+    this.cortarAcomp(); clearInterval(this.timer);
+    S.playing = false; iconePlay();
+  },
+  novoAcomp() { this.acomp = this.ctx.createGain(); this.acomp.connect(this.gK); this.acompB = this.ctx.createGain(); this.acompB.connect(this.gB); },
+  cortarAcomp() {
+    if (!this.ctx || !this.acomp) return;
+    for (const g of [this.acomp, this.acompB]) { g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015); setTimeout(() => g.disconnect(), 250); }
+    this.novoAcomp();
+  },
+  reagendar() {
+    this.eventos = gerarEventos();
+    if (S.playing) { this.cortarAcomp(); this.acharProx(el.currentTime); }
+  },
+  agendar() {
+    let ag = el.currentTime;
+    // repetir verso
+    if (S.loop && S.sel && S.verses[S.sel.v]) {
+      const b = bordas(S.sel.v), a = b[0], z = b[b.length - 1];
+      if (ag >= z - 0.02 || ag < a - 0.5) { el.currentTime = a; ag = a; this.cortarAcomp(); this.acharProx(a); }
+    }
+    if (el.ended) { this.pos = S.dur; pararUI(); return; }
+    const r = S.speed, lim = ag + 0.22 * r, agoraCtx = this.ctx.currentTime;
+    while (this.prox < this.eventos.length && this.eventos[this.prox].t < lim) {
+      const ev = this.eventos[this.prox++];
+      if (ev.t < ag - 0.03) continue;
+      tocarEvento(this.ctx, ev, agoraCtx + Math.max(0, (ev.t - ag) / r), r);
+    }
+  },
+};
+function volumes() {
+  if (!audio.ctx) return;
+  const on = id => $(id).classList.contains("on");
+  audio.gV.gain.value = on("mViol") ? +$("vViol").value : 0;
+  audio.gK.gain.value = on("mBracsa") ? +$("vBracsa").value * 0.55 : 0;
+  audio.gB.gain.value = on("mBogo") && S.inst === "ambos" ? +$("vBogo").value * 0.9 : 0;
+}
+["vViol", "vBogo", "vBracsa"].forEach(id => $(id).addEventListener("input", volumes));
+["mViol", "mBracsa", "mBogo"].forEach(id => $(id).addEventListener("click", () => { const b = $(id); b.classList.toggle("on"); b.setAttribute("aria-pressed", b.classList.contains("on")); volumes(); }));
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+/* síntese: arcada curta, ligada ou macia; pulso = 2ª nota dentro da mesma arcada */
+function tocarEvento(ac, ev, quando, rate) {
+  const d = ev.d / rate, bogo = ev.tipo === "bogo";
+  const g = ac.createGain(), f = ac.createBiquadFilter();
+  f.type = "lowpass"; f.frequency.value = bogo ? 700 : 2400; f.Q.value = 0.6;
+  g.connect(f); f.connect(bogo ? audio.acompB : audio.acomp);
+  const ataque = ev.at === "curto" ? 0.012 : ev.at === "ligado" ? (ev.liga ? 0.035 : 0.05) : 0.07;
+  const pico = (bogo ? 0.9 : 0.24) * ev.vel;
+  const solta = ev.at === "curto" ? 0.04 : 0.06;
+  const fim = quando + Math.max(ataque + 0.03, d);
+  g.gain.setValueAtTime(0.0001, quando);
+  g.gain.exponentialRampToValueAtTime(ev.liga ? pico * 0.95 : pico, quando + ataque);
+  if (ev.at === "curto") g.gain.setTargetAtTime(pico * (bogo ? 0.35 : 0.5), quando + ataque, d * 0.5);
+  else g.gain.setTargetAtTime(pico * 0.75, quando + ataque, 0.15);
+  if (ev.pulso) { // 2ª nota dentro da mesma arcada: leve apoio sem troca de arco
+    const tp = quando + ev.pulso * d;
+    g.gain.setTargetAtTime(pico * 0.55, tp - 0.06, 0.025);
+    g.gain.setTargetAtTime(pico * 0.85, tp, 0.03);
+  }
+  g.gain.setTargetAtTime(0.0001, fim - 0.005, solta / 3);
+  const ms = bogo ? [ev.m] : ev.ms;
+  for (const m of ms) {
+    const ondas = bogo ? [["sine", 1, 1], ["triangle", 2, 0.25]] : [["sawtooth", 1, 1], ["sawtooth", 1.003, 0.6]];
+    for (const [tipo, mult, amp] of ondas) {
+      const o = ac.createOscillator(), go = ac.createGain();
+      o.type = tipo; o.frequency.value = hz(m) * mult; go.gain.value = amp / ms.length * (bogo ? 1 : 2.2);
+      o.connect(go); go.connect(g); o.start(quando); o.stop(fim + solta + 0.05);
+    }
+  }
+}
+const voicing = c => notasDe(c).map(pc => 55 + ((pc - 55) % 12 + 12) % 12).sort((a, b) => a - b).map(m => m > 71 ? m - 12 : m);
+const nBogo = pc => 36 + ((pc - 36) % 12 + 12) % 12;
+function estiloDe(P) { return P.style || S.estilo; }
+function gerarEventos() {
+  const ev = [];
+  S.verses.forEach((V, v) => {
+    const b = bordas(v);
+    for (let k = 0; k < V.n; k++) {
+      const c = acordeFinal(v, k); if (!c) continue;
+      const P = V.parts[k], est = estiloDe(P);
+      if (est === "pausa" || !ESTILOS[est]) continue;
+      const a = b[k], D = b[k + 1] - a, nb = Math.max(1, P.beats || S.beats);
+      const pd = padrao(est, D, nb, P), ms = voicing(c);
+      for (const x of pd.k) ev.push({...x, t: a + x.t, tipo: "k", ms});
+      if (S.inst === "ambos") for (const x of pd.b) ev.push({...x, t: a + x.t, tipo: "bogo", m: nBogo(x.quinta ? (c.root + 7) % 12 : c.root)});
+    }
+  });
+  return ev.sort((x, y) => x.t - y.t);
+}
+
+/* ============================================================
+   Transporte
+   ============================================================ */
+function iconePlay() { $("playIco").innerHTML = S.playing ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4l14 8-14 8z"/>'; $("playBtn").setAttribute("aria-label", S.playing ? "Pausar" : "Tocar"); }
+function pararUI() { audio.parar(); desenhar(); atualizarRelogio(); }
+function alternarPlay() { if (!S.url) return; if (S.playing) pararUI(); else audio.tocar(); }
+const tempoAtual = () => audio.agora();
+$("playBtn").addEventListener("click", alternarPlay);
+function atualizarRelogio() { $("clk").textContent = fmt(tempoAtual()); }
+$("speed").addEventListener("input", () => { S.speed = +$("speed").value; $("speedV").textContent = Math.round(S.speed * 100) + "%"; el.playbackRate = S.speed; if (S.playing) { audio.cortarAcomp(); audio.acharProx(el.currentTime); } });
+$("loopBtn").addEventListener("click", () => {
+  S.loop = !S.loop; $("loopBtn").classList.toggle("on", S.loop);
+  if (S.loop && !S.sel && S.verses.length) S.sel = parteEm(tempoAtual()) || {v: 0, p: 0};
+  if (S.loop) setStatus(`Repetindo o verso ${S.sel ? S.sel.v + 1 : 1}. Clique em outro acorde para trocar de verso.`);
+  renderGrade(); desenhar();
+});
+let parteTocando = null;
+function laco() {
+  if (!S.playing) return;
+  const t = el.currentTime;
+  atualizarRelogio();
+  const vis = cv.clientWidth / S.view.pps;
+  if (t > S.view.t0 + vis * 0.85 || t < S.view.t0) S.view.t0 = limitarT0(t - vis * 0.15);
+  const pe = parteEm(t), chave = pe ? pe.v + ":" + pe.p : null;
+  if (chave !== parteTocando) { parteTocando = chave; document.querySelectorAll(".cell.now").forEach(c => c.classList.remove("now")); if (pe) { const c = document.querySelector(`.cell[data-v="${pe.v}"][data-p="${pe.p}"]`); if (c) c.classList.add("now"); } }
+  desenhar();
+  requestAnimationFrame(laco);
+}
+
+/* ============================================================
+   Acompanhamento: instrumentos, estilos e parâmetros
+   ============================================================ */
+function miniRitmo(est, P) {
+  // desenha 2 tempos: linha de cima brácsa, de baixo bőgő
+  const W = 300, H = 54, nb = 2, D = 2, pd = padrao(est, D, nb, P);
+  const x = t => 8 + t / D * (W - 16);
+  let s = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">`;
+  for (let i = 0; i <= nb; i++) s += `<line x1="${x(i)}" x2="${x(i)}" y1="2" y2="${H - 2}" stroke="var(--line)" stroke-width="${i % nb === 0 ? 1.5 : 1}"/>`;
+  s += `<text x="${x(0.5) - 3}" y="${H - 1}" font-size="8" fill="var(--muted)" font-family="var(--font-mono)">1</text><text x="${x(1.5) - 3}" y="${H - 1}" font-size="8" fill="var(--muted)" font-family="var(--font-mono)">2</text>`;
+  const linha = (arr, y, cor, rot, ativo) => {
+    s += `<text x="0" y="${y - 7}" font-size="8" fill="var(--muted)" font-family="var(--font-mono)">${rot}</text>`;
+    arr.forEach(a => {
+      const x0 = x(a.t), w = Math.max(3, x(a.t + a.d) - x0 - 2);
+      s += `<rect x="${x0 + 1}" y="${y - 4}" width="${w}" height="8" rx="${a.at === "curto" ? 2 : 4}" fill="${cor}" opacity="${ativo ? 1 : 0.25}"/>`;
+      if (a.pulso) s += `<circle cx="${x0 + a.pulso * (x(a.t + a.d) - x0)}" cy="${y}" r="2.2" fill="var(--bg)"/>`;
+      if (a.dir && y < 30) s += `<text x="${x0 + w / 2 - 3}" y="${y - 6}" font-size="9" fill="${cor}" font-family="var(--font-mono)">${a.dir}</text>`;
+      if (a.liga) s += `<path d="M${x0 - w * 0.6} ${y - 6} Q ${x0} ${y - 13} ${x0 + w * 0.4} ${y - 6}" fill="none" stroke="${cor}" stroke-width="1.2" opacity="${ativo ? 1 : 0.25}"/>`;
+    });
+  };
+  linha(pd.k, 18, "var(--red)", "", true);
+  linha(pd.b, 38, "var(--indigo)", "", S.inst === "ambos");
+  return s + "</svg>";
+}
+function renderEstilos() {
+  $("estilos").innerHTML = Object.entries(ESTILOS).map(([k, E]) =>
+    `<button class="est${S.estilo === k ? " on" : ""}" data-est="${k}" aria-pressed="${S.estilo === k}"><span class="nm">${E.nome}</span><span class="ds">${E.desc}</span>${miniRitmo(k)}</button>`).join("");
+  renderParams();
+  $("instB").classList.toggle("on", S.inst === "bracsa");
+  $("instBB").classList.toggle("on", S.inst === "ambos");
+}
+$("estilos").addEventListener("click", e => { const b = e.target.closest(".est"); if (!b) return; S.estilo = b.dataset.est; renderEstilos(); mudouAcordes(); });
+function renderParams() {
+  const E = ESTILOS[S.estilo], ps = Object.entries(E.params);
+  if (!ps.length) { $("params").innerHTML = `<div class="hint">${E.nome}: sem ajustes.</div>`; return; }
+  $("params").innerHTML = `<h3>Ajustes do ${E.nome}</h3>` + ps.map(([k, p]) => {
+    const v = valParam(S.estilo, k);
+    if (p.tipo === "check") return `<label class="check"><input type="checkbox" data-p="${k}" ${v ? "checked" : ""}> ${p.rot}</label>`;
+    return `<div class="param"><label for="p_${k}">${p.rot}</label><output id="o_${k}">${p.fmt(v)}</output><input id="p_${k}" data-p="${k}" type="range" min="${p.min}" max="${p.max}" step="${p.passo}" value="${v}">${p.ex ? `<span class="ex">${p.ex}</span>` : ""}</div>`;
+  }).join("");
+}
+$("params").addEventListener("input", e => {
+  const k = e.target.dataset.p; if (!k) return;
+  const p = ESTILOS[S.estilo].params[k];
+  const v = p.tipo === "check" ? e.target.checked : +e.target.value;
+  S.params[S.estilo] = {...(S.params[S.estilo] || {}), [k]: v};
+  if (p.fmt) $("o_" + k).textContent = p.fmt(v);
+  const card = document.querySelector(`.est[data-est="${S.estilo}"] svg`); if (card) card.outerHTML = miniRitmo(S.estilo);
+  mudouAcordesLeve();
+});
+$("instB").onclick = () => { S.inst = "bracsa"; renderEstilos(); volumes(); mudouAcordesLeve(); };
+$("instBB").onclick = () => { S.inst = "ambos"; renderEstilos(); volumes(); mudouAcordesLeve(); };
+$("beats").onchange = () => { S.beats = Math.max(1, Math.min(8, parseInt($("beats").value) || 2)); $("beats").value = S.beats; mudouAcordes(); };
+function montarSeletorTom() {
+  const a = S.keyAuto;
+  let h = `<option value="auto">Automática: ${PT[a.ton]} ${a.modo} (${SUST[a.ton]}${a.modo === "maior" ? "" : "m"})</option>`;
+  for (const modo of ["maior", "menor"]) for (let t = 0; t < 12; t++) h += `<option value="${t}:${modo}">${PT[t]} ${modo}</option>`;
+  $("keySel").innerHTML = h;
+  $("keySel").value = S.keyOverride ? S.keyOverride.ton + ":" + S.keyOverride.modo : "auto";
+}
+$("keySel").onchange = () => { const v = $("keySel").value; S.keyOverride = v === "auto" ? null : {ton: +v.split(":")[0], modo: v.split(":")[1]}; mudouAcordes(); };
+
+/* ============================================================
+   Cifra e editor
+   ============================================================ */
+const nomeCurto = est => est === "pausa" ? "pausa" : ESTILOS[est].curto;
+function renderGrade() {
+  const tb = $("grid");
+  if (!S.verses.length) { tb.innerHTML = '<tr><td class="hint">Ainda não há versos. Siga o passo 1 ou toque a música e aperte V em cada início de verso.</td></tr>'; $("txt").value = ""; return; }
+  let html = "";
+  S.verses.forEach((V, v) => {
+    const sg = S.sug[v] && S.sug[v][0], par = sg && sg.parecidos.length ? `<br>≈ ${sg.parecidos.map(j => "V" + (j + 1)).join(", ")}` : "";
+    const loop = S.loop && S.sel && S.sel.v === v ? " ⟲" : "";
+    html += `<tr><th><b>V${v + 1}${loop}</b> ${fmt(V.start)}${par}</th>`;
+    for (let k = 0; k < V.n; k++) {
+      const c = acordeFinal(v, k), ant = k > 0 ? acordeFinal(v, k - 1) : null, s = S.sug[v] && S.sug[v][k];
+      const rep = c && ant && chordKey(c) === chordKey(ant), cls = ["cell"];
+      if (rep) cls.push("rep");
+      if (V.parts[k].chord) cls.push("fixed"); else if (s && s.conf !== null && s.conf <= 0.02) cls.push("low");
+      if (S.sel && S.sel.v === v && S.sel.p === k) cls.push("sel");
+      const st = V.parts[k].style ? `<span class="st">${nomeCurto(V.parts[k].style)}</span>` : "";
+      html += `<td><button class="${cls.join(" ")}" data-v="${v}" data-p="${k}" aria-label="Verso ${v + 1}, acorde ${k + 1}: ${c ? nomeAcorde(c) : "sem acorde"}">${c ? (rep ? "–" : nomeAcorde(c)) : "·"}${st}</button></td>`;
+    }
+    html += "</tr>";
+  });
+  tb.innerHTML = html;
+  $("txt").value = textoCifra();
+}
+$("grid").addEventListener("click", e => {
+  const c = e.target.closest(".cell"); if (!c) return;
+  S.sel = {v: +c.dataset.v, p: +c.dataset.p};
+  const b = bordas(S.sel.v);
+  if (!S.playing || !S.loop) audio.irPara(b[S.sel.p]);
+  garantirVisivel(b[S.sel.p]); renderGrade(); renderEditor(); desenhar();
+});
+function melodiaTrecho(a, b) {
+  if (!S.an) return "";
+  const out = [];
+  for (const n of S.an.notas) { if (n.e <= a || n.s >= b) continue; const nm = NOMES[n.m % 12]; if (out[out.length - 1] !== nm) out.push(nm); }
+  return out.slice(0, 16).join(" ") + (out.length > 16 ? " …" : "");
+}
+function renderEditor() {
+  const ed = $("editor");
+  if (!S.sel || !S.verses[S.sel.v] || S.sel.p >= S.verses[S.sel.v].n) { ed.hidden = true; return; }
+  const {v, p} = S.sel, V = S.verses[v], P = V.parts[p], b = bordas(v), sg = S.sug[v] && S.sug[v][p], c = acordeFinal(v, p);
+  const chips = (sg ? sg.alts : []).map(x => `<button class="chip${c && chordKey(x.a) === chordKey(c) ? " on" : ""}" data-root="${x.a.root}" data-type="${x.a.type}">${nomeAcorde(x.a)}<small>${Math.round(100 * x.cob)}%</small></button>`).join("");
+  const raizOpts = NOMES.map((n, i) => `<option value="${i}"${c && c.root === i ? " selected" : ""}>${n}</option>`).join("");
+  const tipoOpts = Object.entries(TIPOS).map(([t, o]) => `<option value="${t}"${c && c.type === t ? " selected" : ""}>${o.rot}</option>`).join("");
+  const estOpts = `<option value="">Estilo geral (${ESTILOS[S.estilo].nome})</option>` + Object.entries(ESTILOS).map(([k, E]) => `<option value="${k}"${P.style === k ? " selected" : ""}>${E.nome}</option>`).join("") + `<option value="pausa"${P.style === "pausa" ? " selected" : ""}>Pausa (não toca)</option>`;
+  ed.hidden = false;
+  ed.innerHTML = `
+    <div class="head"><strong>Verso ${v + 1} · acorde ${p + 1} de ${V.n}</strong><span class="mono hint">${fmt(b[p])} – ${fmt(b[p + 1])} · ${(b[p + 1] - b[p]).toFixed(2)} s</span></div>
+    <div class="mel">Violino: ${melodiaTrecho(b[p], b[p + 1]) || "(sem notas)"}</div>
+    <div class="field"><span class="lbl">Sugestões · % das notas do violino dentro do acorde ${P.chord ? "" : '<span class="badge">automático</span>'}</span><div class="chips" id="chips">${chips}</div></div>
+    <div class="row">
+      <div class="field"><label for="edRoot">Fundamental</label><select id="edRoot">${raizOpts}</select></div>
+      <div class="field"><label for="edType">Tipo</label><select id="edType">${tipoOpts}</select></div>
+      <div class="field"><label for="edStyle">Estilo deste acorde</label><select id="edStyle">${estOpts}</select></div>
+      <div class="field"><label for="edBeats">Tempos</label><input id="edBeats" type="number" min="1" max="8" value="${P.beats || ""}" placeholder="${S.beats}"></div>
+    </div>
+    ${c ? `<div class="notes-line">Brácsa: <b>${grafia(c).join(" ")}</b>${S.inst === "ambos" ? ` &nbsp;·&nbsp; Bőgő: <b>${NOMES[c.root]}</b> (quinta ${NOMES[(c.root + 7) % 12]})` : ""}</div>` : ""}
+    <div class="row">
+      <button id="edPlay">▶ Ouvir daqui</button>
+      <button id="edAll" title="Mesmo acorde nesta posição em todos os versos com o mesmo número de acordes">Aplicar em todos os versos</button>
+      <button id="edAuto" ${P.chord || P.style ? "" : "disabled"}>Voltar ao automático</button>
+      <span class="spacer"></span>
+      <button id="edPrev" aria-label="Acorde anterior">◀</button><button id="edNext" aria-label="Próximo acorde">▶</button>
+    </div>
+    <div class="row">
+      <span class="hint">Partes deste verso:</span>
+      <button id="edMenos" aria-label="Uma parte a menos">−</button><span class="mono">${V.n}</span><button id="edMais" aria-label="Uma parte a mais">+</button>
+      <button id="edIgualar" ${V.cuts ? "" : "disabled"}>Igualar partes</button>
+    </div>`;
+  const fixar = c2 => { P.chord = c2; mudouAcordes(); };
+  $("chips").onclick = e => { const ch = e.target.closest(".chip"); if (ch) fixar({root: +ch.dataset.root, type: ch.dataset.type}); };
+  $("edRoot").onchange = () => fixar({root: +$("edRoot").value, type: $("edType").value});
+  $("edType").onchange = () => fixar({root: +$("edRoot").value, type: $("edType").value});
+  $("edStyle").onchange = () => { P.style = $("edStyle").value || null; mudouAcordes(); };
+  $("edBeats").onchange = () => { const n = parseInt($("edBeats").value); P.beats = n > 0 ? Math.min(8, n) : null; mudouAcordes(); };
+  $("edAuto").onclick = () => { P.chord = null; P.style = null; P.beats = null; mudouAcordes(); };
+  $("edAll").onclick = () => { const cc = acordeFinal(v, p); S.verses.forEach(W => { if (W.n === V.n) { W.parts[p].chord = cc ? {...cc} : null; W.parts[p].style = P.style; } }); mudouAcordes(); setStatus(`${cc ? nomeAcorde(cc) : "Acorde"} aplicado na posição ${p + 1} de todos os versos com ${V.n} acordes.`); };
+  $("edPlay").onclick = () => { if (S.playing) audio.parar(); audio.pos = b[p]; audio.tocar(); };
+  $("edPrev").onclick = () => passarParte(-1);
+  $("edNext").onclick = () => passarParte(1);
+  $("edMenos").onclick = () => { if (V.n > 1) { redimensionar(V, V.n - 1); S.sel.p = Math.min(S.sel.p, V.n - 1); mudouEstrutura(); } };
+  $("edMais").onclick = () => { if (V.n < 32) { redimensionar(V, V.n + 1); mudouEstrutura(); } };
+  $("edIgualar").onclick = () => { V.cuts = null; mudouEstrutura(); };
+}
+function textoParam(est) { const E = ESTILOS[est]; return Object.entries(E.params).filter(([, p]) => p.fmt).map(([k, p]) => p.rot.toLowerCase() + ": " + p.fmt(valParam(est, k))).join(", "); }
+function textoCifra() {
+  if (!S.verses.length) return "";
+  const {ton, modo} = tom(), L = [];
+  L.push(S.nome || "Música");
+  L.push(`Tonalidade: ${PT[ton]} ${modo} (${NOMES[ton]}${modo === "maior" ? "" : "m"})`);
+  L.push(`Acompanhamento: ${S.inst === "ambos" ? "brácsa + bőgő" : "só brácsa"} · ${ESTILOS[S.estilo].nome}${textoParam(S.estilo) ? " (" + textoParam(S.estilo) + ")" : ""} · ${S.beats} tempo(s) por acorde`);
+  L.push("");
+  const usados = new Map();
+  const larg = Math.max(4, ...S.verses.flatMap((V, v) => V.parts.map((_, k) => { const c = acordeFinal(v, k); return c ? nomeAcorde(c).length + 1 : 2; })));
+  S.verses.forEach((V, v) => {
+    const cel = [];
+    for (let k = 0; k < V.n; k++) {
+      const c = acordeFinal(v, k), ant = k > 0 ? acordeFinal(v, k - 1) : null;
+      if (c) usados.set(chordKey(c), c);
+      let s = !c ? "·" : (ant && chordKey(ant) === chordKey(c) ? "-" : nomeAcorde(c));
+      if (V.parts[k].style) s += "(" + nomeCurto(V.parts[k].style) + ")";
+      cel.push(s.padEnd(larg));
+    }
+    L.push(`V${String(v + 1).padEnd(2)} ${fmt(V.start).padStart(7)} | ${cel.join(" | ")} |`);
+  });
+  L.push("('-' = repete o acorde anterior)", "", "Acordes usados:");
+  for (const c of usados.values()) L.push(`  ${nomeAcorde(c).padEnd(5)} brácsa: ${grafia(c).join(" ").padEnd(13)}` + (S.inst === "ambos" ? ` bőgő: ${NOMES[c.root]} (quinta ${NOMES[(c.root + 7) % 12]})` : ""));
+  return L.join("\n");
+}
+
+/* ============================================================
+   Mudanças, salvar, abrir
+   ============================================================ */
+function sincronizarCampos() { if (S.verses.length) { $("s1").value = fmt(S.verses[0].start); if (S.verses[1]) $("s2").value = fmt(S.verses[1].start); $("sEnd").value = fmt(S.end); } }
+function mudouEstrutura() { calcular(); audio.reagendar(); sincronizarCampos(); renderGrade(); renderEditor(); desenhar(); guardar(); }
+function mudouAcordes() { calcular(); audio.reagendar(); renderGrade(); renderEditor(); desenhar(); guardar(); }
+let tLeve = null;
+function mudouAcordesLeve() { clearTimeout(tLeve); tLeve = setTimeout(() => { audio.reagendar(); renderGrade(); if (S.sel) renderEditor(); guardar(); }, 120); }
+function projeto() {
+  return {app: "cifrador-bracsa", versao: 2, arquivo: S.nome, duracao: S.dur, fim: S.end, nParts: S.nParts,
+    estilo: S.estilo, params: S.params, tempos: S.beats, instrumentos: S.inst, tonalidade: S.keyOverride,
+    versos: S.verses.map(V => ({inicio: V.start, partes: V.n, cortes: V.cuts, acordes: V.parts.map(P => ({acorde: P.chord, estilo: P.style, tempos: P.beats || null}))}))};
+}
+function carregarProjeto(o) {
+  if (!o || !Array.isArray(o.versos)) throw new Error("formato");
+  S.end = o.fim ?? S.dur; S.nParts = o.nParts || 8; S.beats = o.tempos || 2; S.keyOverride = o.tonalidade || null;
+  S.estilo = ESTILOS[o.estilo] ? o.estilo : "ugros"; S.params = o.params || {}; S.inst = o.instrumentos === "bracsa" ? "bracsa" : "ambos";
+  S.verses = o.versos.map(x => ({start: x.inicio, n: x.partes, cuts: x.cortes || null, parts: x.acordes.map(a => ({chord: a.acorde || null, style: (a.estilo && (ESTILOS[a.estilo] || a.estilo === "pausa")) ? a.estilo : null, beats: a.tempos || null}))}));
+  $("nParts").value = S.nParts; $("beats").value = S.beats;
+  montarSeletorTom(); renderEstilos(); volumes();
+  S.sel = S.verses.length ? {v: 0, p: 0} : null;
+  mudouEstrutura();
+}
+const chaveLocal = () => "cifrador2:" + S.nome + ":" + Math.round(S.dur);
+let tGuardar = null;
+function guardar() { clearTimeout(tGuardar); tGuardar = setTimeout(() => { try { localStorage.setItem(chaveLocal(), JSON.stringify(projeto())); } catch (e) {} }, 400); }
+function recuperar() { try { const s = localStorage.getItem(chaveLocal()); if (s) { carregarProjeto(JSON.parse(s)); return true; } } catch (e) {} return false; }
+/* Dentro do Claude, salvar passa pelo pedido de download da página.
+   Fora dele (app instalado ou arquivo aberto no PC), usa o download normal do navegador. */
+const DENTRO_DO_CLAUDE = !!(window.claude && window.claude.use);
+let downloads = null;
+(async () => { if (!DENTRO_DO_CLAUDE) return; try { downloads = await window.claude.use("downloads"); } catch (e) {} if (!downloads) { $("saveTxt").hidden = true; $("saveProj").hidden = true; } })();
+async function salvarArquivo(nome, dados) {
+  if (!DENTRO_DO_CLAUDE) {
+    const blob = dados instanceof Blob ? dados : new Blob([dados], {type: nome.endsWith(".json") ? "application/json" : "text/plain;charset=utf-8"});
+    const a = document.createElement("a"), url = URL.createObjectURL(blob);
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000); setStatus("Arquivo salvo: " + nome); return;
+  }
+  if (!downloads) { setStatus("Salvar arquivos não está disponível nesta visualização. Use Copiar cifra.", true); return; }
+  try { await downloads.save({filename: nome, data: dados}); setStatus("Arquivo salvo: " + nome); }
+  catch (e) { if (e && e.code === "declined") setStatus("Download cancelado."); else setStatus("Não deu para salvar o arquivo (" + (e && e.code || "erro") + ").", true); }
+}
+const base = () => (S.nome || "musica").replace(/\.[^.]+$/, "");
+$("saveTxt").onclick = () => salvarArquivo(base() + " - cifra.txt", textoCifra());
+$("saveProj").onclick = () => salvarArquivo(base() + " - projeto.json", JSON.stringify(projeto(), null, 1));
+$("copyTxt").onclick = async () => {
+  const t = textoCifra();
+  try { await navigator.clipboard.writeText(t); setStatus("Cifra copiada."); }
+  catch (e) { document.querySelector("details").open = true; $("txt").focus(); $("txt").select(); setStatus("Selecionei a cifra no quadro de texto: copie com Ctrl+C."); }
+};
+$("projIn").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { const o = JSON.parse(await f.text()); if (!S.dur) { setStatus("Abra a gravação primeiro, depois o projeto.", true); return; } carregarProjeto(o); setStatus("Projeto aberto: " + f.name); }
+  catch (err) { setStatus("Esse arquivo não é um projeto do Cifrador.", true); }
+};
+$("s1Here").onclick = () => { $("s1").value = fmt(tempoAtual()); };
+$("s2Here").onclick = () => { $("s2").value = fmt(tempoAtual()); };
+$("endHere").onclick = () => { $("sEnd").value = fmt(tempoAtual()); if (S.verses.length) { S.end = Math.max(S.verses[S.verses.length - 1].start + 0.5, tempoAtual()); mudouEstrutura(); } };
+$("build").onclick = montarVersos;
+
+/* ============================================================
+   Gravar pelo microfone
+   ============================================================ */
+const banco = {
+  db: null, mem: [],
+  async abrir() {
+    if (this.db || !window.indexedDB) return this.db;
+    try {
+      this.db = await new Promise((ok, erro) => {
+        const r = indexedDB.open("cifrador-bracsa", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("gravacoes", {keyPath: "id"});
+        r.onsuccess = () => ok(r.result); r.onerror = () => erro(r.error);
+      });
+    } catch (e) { this.db = null; }
+    return this.db;
+  },
+  async op(modo, fn) {
+    const db = await this.abrir(); if (!db) return null;
+    return new Promise((ok, erro) => { const tx = db.transaction("gravacoes", modo), st = tx.objectStore("gravacoes"); const r = fn(st); tx.oncomplete = () => ok(r && r.result); tx.onerror = () => erro(tx.error); });
+  },
+  async listar() { try { const l = await this.op("readonly", st => st.getAll()); if (l) return l.sort((a, b) => b.id - a.id); } catch (e) {} return this.mem.slice().sort((a, b) => b.id - a.id); },
+  async salvar(g) { try { if (await this.op("readwrite", st => st.put(g)) !== null) return; } catch (e) {} this.mem.push(g); },
+  async apagar(id) { try { await this.op("readwrite", st => st.delete(id)); } catch (e) {} this.mem = this.mem.filter(g => g.id !== id); },
+};
+const grav = {stream: null, rec: null, pedacos: [], inicio: 0, raf: 0, analisador: null, fonte: null, mime: ""};
+function avisoRec(msg) { const a = $("recAviso"); a.textContent = msg || ""; a.hidden = !msg; }
+function microfoneBloqueado() {
+  return DENTRO_DO_CLAUDE ? "Dentro do link do Claude a página não pode usar o microfone. A gravação funciona no app instalado (celular ou PC) e no arquivo Cifrador-de-Bracsa.html aberto no computador. Aqui você pode gravar no gravador do celular e usar Abrir gravação." : "";
+}
+$("recOpen").onclick = () => { const p = $("recPanel"); p.hidden = !p.hidden; $("recOpen").setAttribute("aria-expanded", !p.hidden); if (!p.hidden) { avisoRec(microfoneBloqueado()); listarTakes(); } };
+$("recClose").onclick = () => { $("recPanel").hidden = true; $("recOpen").setAttribute("aria-expanded", "false"); };
+$("recBtn").onclick = () => { if (grav.rec && grav.rec.state === "recording") pararGravacao(); else comecarGravacao(); };
+async function comecarGravacao() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    avisoRec(microfoneBloqueado() || "Este navegador não grava áudio. Use o Chrome, Edge, Firefox ou Safari atualizados."); return;
+  }
+  try {
+    // sem os filtros de voz do navegador: eles estragam o som de instrumento
+    grav.stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1}});
+  } catch (e) {
+    const nome = e && e.name;
+    avisoRec(microfoneBloqueado() || (nome === "NotAllowedError" ? "O acesso ao microfone foi negado. Libere o microfone para esta página nas configurações do navegador e tente de novo." : nome === "NotFoundError" ? "Não encontrei nenhum microfone neste aparelho." : "Não consegui abrir o microfone (" + (nome || "erro") + ")."));
+    return;
+  }
+  avisoRec("");
+  pararUI();
+  grav.mime = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || "";
+  try { grav.rec = new MediaRecorder(grav.stream, grav.mime ? {mimeType: grav.mime, audioBitsPerSecond: 128000} : undefined); }
+  catch (e) { grav.rec = new MediaRecorder(grav.stream); }
+  grav.pedacos = [];
+  grav.rec.ondataavailable = e => { if (e.data && e.data.size) grav.pedacos.push(e.data); };
+  grav.rec.onstop = gravacaoTerminou;
+  grav.rec.start(250);
+  grav.inicio = performance.now();
+  $("recBtn").classList.add("on"); $("recBtn").setAttribute("aria-label", "Parar a gravação");
+  $("recDica").textContent = "Gravando… toque de novo no botão para parar.";
+  // medidor de nível
+  audio.garantir(); if (audio.ctx.state === "suspended") audio.ctx.resume();
+  grav.fonte = audio.ctx.createMediaStreamSource(grav.stream);
+  grav.analisador = audio.ctx.createAnalyser(); grav.analisador.fftSize = 1024;
+  grav.fonte.connect(grav.analisador);
+  const buf = new Float32Array(grav.analisador.fftSize);
+  let pico = 0, ultimoAlto = 0;
+  const medir = () => {
+    if (!grav.rec || grav.rec.state !== "recording") return;
+    grav.analisador.getFloatTimeDomainData(buf);
+    let rms = 0, mx = 0; for (const v of buf) { rms += v * v; mx = Math.max(mx, Math.abs(v)); }
+    rms = Math.sqrt(rms / buf.length);
+    pico = Math.max(mx, pico * 0.95);
+    const nivel = Math.min(1, Math.sqrt(rms) * 1.6), el2 = $("recNivel");
+    el2.style.width = Math.round(nivel * 100) + "%";
+    if (mx > 0.98) ultimoAlto = performance.now();
+    const alto = performance.now() - ultimoAlto < 1500;
+    el2.classList.toggle("alto", alto);
+    $("recNivelTxt").textContent = alto ? "Muito alto: afaste o aparelho do violino" : (nivel < 0.08 ? "Muito baixo: aproxime o aparelho" : "Nível do microfone");
+    $("recClk").textContent = fmt((performance.now() - grav.inicio) / 1000);
+    grav.raf = requestAnimationFrame(medir);
+  };
+  medir();
+}
+function pararGravacao() { if (grav.rec && grav.rec.state === "recording") grav.rec.stop(); }
+async function gravacaoTerminou() {
+  cancelAnimationFrame(grav.raf);
+  try { grav.fonte.disconnect(); } catch (e) {}
+  grav.stream.getTracks().forEach(t => t.stop());
+  $("recBtn").classList.remove("on"); $("recBtn").setAttribute("aria-label", "Começar a gravar");
+  $("recNivel").style.width = "0%"; $("recNivelTxt").textContent = "Nível do microfone";
+  $("recDica").textContent = "Toque no botão vermelho e toque o violino. Ao parar, a gravação abre sozinha para análise e fica guardada na lista abaixo.";
+  const tipo = (grav.rec.mimeType || grav.mime || "audio/webm").split(";")[0];
+  const blob = new Blob(grav.pedacos, {type: tipo});
+  const dur = (performance.now() - grav.inicio) / 1000;
+  grav.rec = null;
+  if (blob.size < 2000 || dur < 1) { avisoRec("A gravação ficou curta demais. Tente de novo."); return; }
+  const agora = new Date(), id = agora.getTime();
+  const nome = "Gravação " + agora.toLocaleDateString("pt-BR") + " " + agora.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+  const g = {id, nome, dur, tipo, blob};
+  await banco.salvar(g);
+  listarTakes();
+  analisarTake(g);
+}
+const extDe = tipo => tipo.includes("mp4") || tipo.includes("aac") ? "m4a" : tipo.includes("ogg") ? "ogg" : "webm";
+async function analisarTake(g) {
+  const bytes = await g.blob.arrayBuffer();
+  await abrirAudio(bytes, g.nome + "." + extDe(g.tipo), g.tipo, false);
+  window.scrollTo({top: document.querySelector(".transport").offsetTop - 10, behavior: "smooth"});
+}
+async function listarTakes() {
+  const lista = await banco.listar(), box = $("takes");
+  if (!lista.length) { box.innerHTML = '<div class="hint">Nenhuma gravação ainda.</div>'; return; }
+  box.innerHTML = lista.map(g => `<div class="take" data-id="${g.id}"><span class="nm">${g.nome}</span><span class="info">${fmt(g.dur)}</span><span class="spacer"></span><button data-a="analisar" class="primary">Analisar</button><button data-a="salvar">Salvar arquivo</button><button data-a="apagar" class="ghost">Apagar</button></div>`).join("");
+}
+$("takes").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = +b.closest(".take").dataset.id, g = (await banco.listar()).find(x => x.id === id); if (!g) return;
+  if (b.dataset.a === "analisar") analisarTake(g);
+  else if (b.dataset.a === "salvar") salvarArquivo(g.nome.replace(/[\/:]/g, "-") + "." + extDe(g.tipo), g.blob);
+  else if (b.dataset.a === "apagar") {
+    if (b.dataset.confirma) { await banco.apagar(id); listarTakes(); }
+    else { b.dataset.confirma = "1"; b.textContent = "Confirmar"; b.classList.remove("ghost"); setTimeout(() => { if (b.isConnected) { delete b.dataset.confirma; b.textContent = "Apagar"; b.classList.add("ghost"); } }, 3000); }
+  }
+});
+
+/* ============================================================
+   Abrir gravação
+   ============================================================ */
+async function abrirAudio(bytes, nome, tipoMime, exemplo) {
+  pararUI();
+  $("progWrap").hidden = false; $("prog").style.width = "0%";
+  $("meta").textContent = "Lendo " + nome + "…";
+  audio.garantir();
+  let buf;
+  try { buf = await audio.ctx.decodeAudioData(bytes.slice(0)); }
+  catch (e) { $("progWrap").hidden = true; $("meta").textContent = "Não consegui abrir " + nome + ". Tente exportar a gravação como WAV ou MP3."; return; }
+  if (S.url) URL.revokeObjectURL(S.url);
+  S.url = URL.createObjectURL(new Blob([bytes], {type: tipoMime || "audio/mp4"}));
+  el.src = S.url; el.load();
+  S.nome = nome; S.dur = buf.duration;
+  $("dur").textContent = fmt(S.dur);
+  const off = new OfflineAudioContext(1, Math.ceil(buf.duration * SR), SR);
+  const s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
+  const y = (await off.startRendering()).getChannelData(0);
+  let pk = 0; for (let i = 0; i < y.length; i++) pk = Math.max(pk, Math.abs(y[i]));
+  if (pk > 0) for (let i = 0; i < y.length; i++) y[i] /= pk;
+  prepararOnda(y);
+  S.verses = []; S.sug = []; S.sel = null; S.selLine = null; S.keyOverride = null; S.end = S.dur;
+  audio.pos = 0; S.view.pps = ppsMin(); S.view.t0 = 0; desenhar();
+  $("meta").textContent = "Ouvindo as notas do violino…";
+  S.an = await analisar(y, p => { $("prog").style.width = Math.round(p * 100) + "%"; });
+  estimarTom(); montarSeletorTom();
+  $("progWrap").hidden = true;
+  $("meta").innerHTML = `<b>${nome.replace(/</g, "&lt;")}</b> · ${fmt(S.dur)} · afinação Lá = ${S.an.ref.toFixed(0)} Hz` + (exemplo ? ` · <span class="badge">exemplo</span>` : "");
+  setStatus("");
+  if (recuperar()) setStatus("Retomei as marcações que você tinha feito nesta gravação.");
+  else if (exemplo) { carregarProjeto(EXEMPLO); setStatus("Exemplo: sua gravação (música 2, de 1:11 a 1:59), com 4 versos de 8 acordes. Abra outra gravação quando quiser."); }
+  else { $("s1").value = ""; $("s2").value = ""; $("sEnd").value = fmt(S.dur); mudouEstrutura(); setStatus("Toque a música e marque o início do 1º e do 2º verso, ou aperte V em cada início de verso."); }
+  zoomEm(Math.min(4, Math.max(1, 1200 / Math.max(1, cv.clientWidth))), 0);
+  desenhar();
+}
+$("fileIn").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; abrirAudio(await f.arrayBuffer(), f.name, f.type, false); };
+
+const EXEMPLO = {versos: [0.72, 12.10, 23.52, 33.98].map(t => ({inicio: t, partes: 8, cortes: null, acordes: Array.from({length: 8}, () => ({}))})),
+  fim: 45.3, nParts: 8, estilo: "ugros", tempos: 2, instrumentos: "ambos", tonalidade: null};
+const AUDIO_EXEMPLO = "";
+
+async function iniciar() {
+  lerCores(); tamanhoCanvas(); renderEstilos(); renderGrade(); desenhar();
+  // app instalado: registra o modo offline
+  if ("serviceWorker" in navigator && !DENTRO_DO_CLAUDE && location.protocol.startsWith("http") && document.querySelector('link[rel="manifest"]')) {
+    try { navigator.serviceWorker.register("sw.js"); } catch (e) {}
+  }
+  let buf = null;
+  if (AUDIO_EXEMPLO) {
+    const bin = atob(AUDIO_EXEMPLO), u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    buf = u.buffer;
+  } else {
+    try { const r = await fetch("exemplo.m4a"); if (r.ok) buf = await r.arrayBuffer(); } catch (e) {}
+  }
+  if (buf) abrirAudio(buf, "Sua gravação, música 2.m4a", "audio/mp4", true);
+  else { $("meta").textContent = "Abra uma gravação para começar."; setStatus("Clique em Abrir gravação e escolha um arquivo de áudio do violino."); }
+}
+window.addEventListener("resize", () => { tamanhoCanvas(); S.view.pps = Math.max(ppsMin(), S.view.pps); desenhar(); });
+const mq = window.matchMedia("(prefers-color-scheme: dark)");
+const recolorir = () => { lerCores(); desenhar(); };
+mq.addEventListener ? mq.addEventListener("change", recolorir) : mq.addListener(recolorir);
+new MutationObserver(recolorir).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+iniciar();
+</script>
+
+</body>
+</html>
