@@ -301,7 +301,7 @@ table.cifra tr.fimverso td { padding-bottom: 6px; }
         <button id="mTeste">Ouvir</button>
       </div>
       <div class="row"><div class="luzes" id="mLuzes"></div><span class="contagem" id="mCont2"></span></div>
-      <div class="hint">Pode gravar com ou sem fone. Sem fone, deixe a contagem ligada: o programa aprende o som do clique na contagem e o tira da gravação depois. A grade de tempos fica guardada junto, e o programa já sabe onde cai cada compasso.</div>
+      <div class="hint">Use fone de ouvido: assim o clique não entra na gravação. A grade de tempos fica guardada junto e o programa já sabe onde cai cada compasso.</div>
     </div>
     <div class="hint" id="recDica">Toque no botão vermelho e toque o violino. Ao parar, a gravação abre sozinha para análise e fica guardada na lista abaixo.</div>
     <div class="field"><span class="lbl">Gravações neste aparelho</span><div class="takes" id="takes"></div></div>
@@ -1065,8 +1065,8 @@ function compassoDoBeat(i) { const g = S.grade; return Math.floor((i - (g.primei
 function bpmDaGrade() { const B = batidas(); if (!B) return 0; const d = B.slice(1).map((t, i) => t - B[i]).sort((a, b) => a - b); return 60 / d[d.length >> 1]; }
 function gradeDoMetronomo(info, dur) {
   const per = 60 / info.bpm, tempos = [];
-  for (let k = 0; info.primeiro + k * per < dur + per; k++) tempos.push(Math.round((info.primeiro + k * per) * 10000) / 10000);
-  return {tempos, porCompasso: info.porCompasso, origem: "metronomo", bpm: Math.round(info.bpm * 100) / 100, desloc: 0, primeiroCompasso: info.contagem * info.porCompasso};
+  for (let t = info.primeiro; t < dur + per; t += per) tempos.push(Math.round(t * 1000) / 1000);
+  return {tempos, porCompasso: info.porCompasso, origem: "metronomo", bpm: info.bpm, desloc: 0, primeiroCompasso: info.contagem * info.porCompasso};
 }
 function envelopeAtaques(y) {
   const H = 256, n = Math.floor(y.length / H), e = new Float32Array(n), o = new Float32Array(n);
@@ -1345,14 +1345,20 @@ const audio = {
     if (this.ligado) return;
     try { const src = this.ctx.createMediaElementSource(el); src.connect(this.gV); this.ligado = true; } catch (e) { this.ligado = true; }
   },
-  agora() { return S.playing ? el.currentTime : this.pos; },
+  /* Relógio: as arcadas são marcadas no relógio de áudio (preciso à amostra). A posição na gravação
+     é calculada a partir de uma âncora {ctx, midia, rate}; o relógio do player de vídeo/áudio do
+     navegador anda aos saltos (principalmente no celular) e só serve para corrigir desvios grandes. */
+  ancora: null, recomeco: false, desvios: 0,
+  ancorar(midia) { this.ancora = {ctx: this.ctx.currentTime, midia: midia === undefined ? el.currentTime : midia, rate: S.speed}; this.recomeco = true; },
+  midiaAgora() { const a = this.ancora; return a ? a.midia + (this.ctx.currentTime - a.ctx) * a.rate : el.currentTime; },
+  ctxDe(t) { const a = this.ancora; return a.ctx + (t - a.midia) / a.rate; },
+  agora() { return S.playing ? (this.ancora ? this.midiaAgora() : el.currentTime) : this.pos; },
   irPara(t) {
     t = Math.max(0, Math.min(S.dur, t)); this.pos = t;
-    if (S.playing) { this.cortarAcomp(); el.currentTime = t; this.ultimo = t; this.acharProx(t); }
+    if (S.playing) { this.cortarAcomp(); el.currentTime = t; this.ancorar(t); this.acharProx(t); }
     atualizarRelogio();
   },
-  // a partir do primeiro evento que ainda está soando em t (arcadas longas que já começaram também entram)
-  acharProx(t) { this.prox = this.eventos.findIndex(ev => ev.t + ev.d > t + 0.02); if (this.prox < 0) this.prox = this.eventos.length; },
+  acharProx(t) { this.prox = this.eventos.findIndex(ev => ev.t >= t - 0.005); if (this.prox < 0) this.prox = this.eventos.length; },
   async tocar() {
     if (!S.url) return;
     this.garantir(); this.ligarGravacao();
@@ -1363,14 +1369,15 @@ const audio = {
     this.novoAcomp();
     try { await el.play(); } catch (e) { setStatus("O navegador não deixou tocar. Toque no botão de novo.", true); return; }
     S.playing = true; iconePlay();
-    this.ultimo = this.pos; this.acharProx(this.pos);
-    clearInterval(this.timer); this.timer = setInterval(() => this.agendar(), 30);
+    this.ancorar(this.pos); this.acharProx(this.pos);
+    clearInterval(this.timer); this.timer = setInterval(() => this.agendar(), 25);
+    this.agendar();
     laco();
   },
   parar() {
     if (!S.playing) return;
-    this.pos = el.currentTime; el.pause();
-    this.cortarAcomp(); clearInterval(this.timer);
+    this.pos = this.midiaAgora(); el.pause();
+    this.cortarAcomp(); clearInterval(this.timer); this.ancora = null;
     S.playing = false; iconePlay();
   },
   novoAcomp() { this.acomp = this.ctx.createGain(); this.acomp.connect(this.gK); this.acompB = this.ctx.createGain(); this.acompB.connect(this.gB); this.acompC = this.ctx.createGain(); this.acompC.connect(this.gC); },
@@ -1381,28 +1388,33 @@ const audio = {
   },
   reagendar() {
     this.eventos = gerarEventos();
-    if (S.playing) { this.cortarAcomp(); this.acharProx(el.currentTime); }
+    if (S.playing) { const m = this.midiaAgora(); this.cortarAcomp(); this.acharProx(m); this.recomeco = true; }
   },
   agendar() {
-    let ag = el.currentTime;
+    if (el.ended) { this.pos = S.dur; pararUI(); return; }
+    let m = this.midiaAgora();
+    // o player da gravação desviou do relógio de áudio de forma persistente (travou, buscou):
+    // cancela o que estava agendado e reancora; desvios de um instante são ignorados
+    if (!el.seeking && Math.abs(el.currentTime - m) > 0.15) this.desvios++; else this.desvios = 0;
+    if (this.desvios >= 4) { this.desvios = 0; m = el.currentTime; this.cortarAcomp(); this.ancorar(m); this.acharProx(m); }
     // repetir verso
     if (S.loop && S.sel && S.verses[S.sel.v]) {
       const b = bordas(S.sel.v), a = b[0], z = b[b.length - 1];
-      if (ag >= z - 0.02 || ag < a - 0.5) { el.currentTime = a; ag = a; this.cortarAcomp(); this.acharProx(a); }
+      if (m >= z - 0.01 || m < a - 0.5) { el.currentTime = a; this.cortarAcomp(); this.ancorar(a); this.acharProx(a); m = a; }
     }
-    if (el.ended) { this.pos = S.dur; pararUI(); return; }
-    const r = S.speed, lim = ag + 0.22 * r, agoraCtx = this.ctx.currentTime;
-    while (this.prox < this.eventos.length && this.eventos[this.prox].t < lim) {
-      const ev = this.eventos[this.prox++];
-      if (ev.t < ag - 0.02) {
-        // devia ter começado um instante atrás (início do play, troca de estilo, repetição):
-        // entra agora com o tempo que ainda falta, em vez de ficar em silêncio
-        const resta = ev.t + ev.d - ag;
-        if (ev.tipo === "clique" || resta < 0.08) continue;
-        tocarEvento(this.ctx, {...ev, t: ag, d: resta, pulso: undefined, liga: false}, agoraCtx, r);
-        continue;
+    const agoraCtx = this.ctx.currentTime, lim = m + 0.3 * S.speed;
+    if (this.recomeco) {
+      // só no início do play ou numa troca: uma arcada LONGA que já começou entra com o que falta dela
+      this.recomeco = false;
+      for (let q = this.prox - 1; q >= Math.max(0, this.prox - 40); q--) {
+        const ev = this.eventos[q], resta = ev.t + ev.d - m;
+        if (ev.tipo !== "clique" && ev.at === "macio" && ev.t < m && resta >= 0.35) tocarEvento(this.ctx, {...ev, t: m, d: resta, pulso: undefined}, agoraCtx + 0.01, S.speed);
       }
-      tocarEvento(this.ctx, ev, agoraCtx + Math.max(0, (ev.t - ag) / r), r);
+    }
+    while (this.prox < this.eventos.length && this.eventos[this.prox].t < lim) {
+      const ev = this.eventos[this.prox++], quando = this.ctxDe(ev.t);
+      if (quando < agoraCtx - 0.03) continue;   // só acontece se o aparelho travar por mais de 0,3 s
+      tocarEvento(this.ctx, ev, Math.max(agoraCtx, quando), S.speed);
     }
   },
 };
@@ -1471,8 +1483,12 @@ function gerarEventos() {
       const a = b[k], z = b[k + 1];
       let nb = 0, mapa = null;
       if (B) {
-        const ba = beatDoTempo(a, B), bz = beatDoTempo(z, B), conta = Math.round(bz - ba);
-        if (conta >= 1) { nb = P.beats || conta; const f = (bz - ba) / nb; mapa = u => tempoDoBeat(ba + u * f, B); }
+        // as linhas do acorde vão para o tempo mais próximo: o acorde tem sempre um número inteiro de
+        // tempos, e cada arcada cai exatamente no tempo (mesmo que a linha esteja um pouco fora)
+        const ba = Math.round(beatDoTempo(a, B)), bz = Math.round(beatDoTempo(z, B)), conta = bz - ba;
+        if (conta < 1) continue;                 // acorde mais curto que um tempo: não cabe um ciclo
+        nb = P.beats || conta; const f = conta / nb;
+        mapa = u => tempoDoBeat(ba + u * f, B);
       }
       if (!nb) nb = Math.max(1, P.beats || S.beats);
       if (!mapa) mapa = u => a + u * (z - a) / nb;
@@ -1495,7 +1511,11 @@ function alternarPlay() { if (!S.url) return; if (S.playing) pararUI(); else aud
 const tempoAtual = () => audio.agora();
 $("playBtn").addEventListener("click", alternarPlay);
 function atualizarRelogio() { $("clk").textContent = fmt(tempoAtual()); }
-$("speed").addEventListener("input", () => { S.speed = +$("speed").value; $("speedV").textContent = Math.round(S.speed * 100) + "%"; el.playbackRate = S.speed; if (S.playing) { audio.cortarAcomp(); audio.acharProx(el.currentTime); } });
+$("speed").addEventListener("input", () => {
+  const m = S.playing ? audio.midiaAgora() : 0;
+  S.speed = +$("speed").value; $("speedV").textContent = Math.round(S.speed * 100) + "%"; el.playbackRate = S.speed;
+  if (S.playing) { audio.cortarAcomp(); audio.ancorar(m); audio.acharProx(m); }
+});
 $("loopBtn").addEventListener("click", () => {
   S.loop = !S.loop; $("loopBtn").classList.toggle("on", S.loop);
   if (S.loop && !S.sel && S.verses.length) S.sel = parteEm(tempoAtual()) || {v: 0, p: 0};
@@ -1505,7 +1525,7 @@ $("loopBtn").addEventListener("click", () => {
 let parteTocando = null;
 function laco() {
   if (!S.playing) return;
-  const t = el.currentTime;
+  const t = audio.agora();
   atualizarRelogio();
   const vis = cv.clientWidth / S.view.pps;
   if (t > S.view.t0 + vis * 0.85 || t < S.view.t0) S.view.t0 = limitarT0(t - vis * 0.15);
@@ -1849,7 +1869,7 @@ function iniciarBatida() {
 }
 function baterTempo() {
   if (!S.batendo || !S.playing) return;
-  taps.push(el.currentTime);
+  taps.push(audio.agora());
   $("tapConta").textContent = taps.length + " tempos";
   const b = $("tapBtn"); b.classList.add("pisca"); setTimeout(() => b.classList.remove("pisca"), 90);
 }
@@ -2026,163 +2046,6 @@ const banco = {
   async salvar(g) { try { if (await this.op("readwrite", st => st.put(g)) !== null) return; } catch (e) {} this.mem.push(g); },
   async apagar(id) { try { await this.op("readwrite", st => st.delete(id)); } catch (e) {} this.mem = this.mem.filter(g => g.id !== id); },
 };
-/* Remove o clique do metrônomo de uma gravação feita sem fone.
-   Ideia: aprender como o clique soa NA GRAVAÇÃO (alto-falante + sala + microfone), achar onde
-   cada clique caiu com precisão de fração de amostra (os cliques formam uma reta no tempo,
-   com uma pequena deriva entre os relógios), e subtrair essa cópia invertida.
-   y: Float32Array mono, sr: taxa, info: {bpm, porCompasso, contagem, primeiro, som}
-   Devolve {detectado, y, reducaoDb, deslocMs} — ou {detectado:false} se não há clique audível. */
-function limparMetronomo(y, sr, info) {
-  if (!info || info.som === "visual" || !(info.bpm > 0)) return {detectado: false};
-  const P = 60 / info.bpm, dur = y.length / sr;
-  const pre = Math.round(0.004 * sr), L = Math.round(0.26 * sr), Ld = Math.round(0.045 * sr), busca = Math.round(0.004 * sr);
-  const nCont = (info.contagem || 0) * info.porCompasso;
-  if (nCont < 1) return {detectado: false, semContagem: true}; // a contagem é a calibração
-  const cliques = [];
-  for (let k = 0; info.primeiro + k * P < dur - 0.3; k++) cliques.push({k, forte: k % info.porCompasso === 0, cont: k < nCont});
-  if (cliques.length < 4) return {detectado: false};
-
-  // derivada: o clique é muito mais estalado que o violino
-  const d = new Float32Array(y.length);
-  for (let i = 1; i < y.length; i++) d[i] = y[i] - y[i - 1];
-
-  // 1) atraso global, em passos de 1 ms, pela energia de agudos
-  const passo = Math.round(sr / 1000), fE = sr / passo, nE = Math.floor(y.length / passo), env = new Float32Array(nE);
-  for (let i = 0; i < nE; i++) { let s = 0; for (let j = i * passo; j < (i + 1) * passo; j++) s += d[j] * d[j]; env[i] = s; }
-  const notas = [];
-  for (let dm = -200; dm <= 600; dm++) {
-    let sc = 0, n = 0;
-    for (const c of cliques) { const i = Math.round((info.primeiro + c.k * P + dm / 1000) * fE); if (i >= 0 && i + 3 < nE) { sc += Math.log(1e-12 + env[i] + env[i + 1] + env[i + 2]); n++; } }
-    notas.push({dm, sc: sc / Math.max(1, n)});
-  }
-  const ord = notas.map(x => x.sc).sort((a, b) => a - b), med = ord[ord.length >> 1];
-  let melhor = notas.reduce((a, b) => b.sc > a.sc ? b : a);
-  const destaque = melhor.sc - med;
-  // alinhamentos a um tempo de distância parecem iguais; o certo é aquele em que o 1º clique
-  // cai num som forte com silêncio antes dele (a gravação começa em silêncio, antes da contagem)
-  const pms = Math.round(P * 1000), eJan = (ms0, ms1) => { let s = 0, n = 0; for (let i = Math.max(0, Math.round(ms0 * fE / 1000)); i < Math.min(nE, Math.round(ms1 * fE / 1000)); i++) { s += env[i]; n++; } return n ? s / n : 0; };
-  const cands = [];
-  for (let m = -3; m <= 3; m++) { const c = notas.find(x => x.dm === melhor.dm + m * pms); if (c && c.sc - med > 0.85 * (melhor.sc - med)) cands.push(c); }
-  cands.sort((x, y) => x.dm - y.dm);
-  for (const c of cands) {
-    const p0 = Math.round(info.primeiro * 1000) + c.dm;
-    if (eJan(p0, p0 + 20) > 6 * (eJan(p0 - 200, p0 - 20) + 1e-20)) { melhor = c; break; }
-  }
-  // reta inicial: posição (amostras) do início de cada clique
-  let a = (info.primeiro + melhor.dm / 1000 - 0.0015) * sr, b = P * sr;
-  const posDe = c => a + b * c.k;
-
-  const pega = (x, pos) => { const s = new Float32Array(L), i0 = Math.floor(pos - pre), fr = pos - pre - i0;
-    for (let n = 0; n < L; n++) { const i = i0 + n; s[n] = (i >= 0 && i + 1 < x.length) ? x[i] * (1 - fr) + x[i + 1] * fr : 0; } return s; };
-  // média aparada: descarta os 25% mais extremos de cada lado em cada amostra (o violino some)
-  const mediaAparada = segs => { const T = new Float32Array(L), col = new Float32Array(segs.length), corte = Math.floor(segs.length / 4);
-    for (let n = 0; n < L; n++) { for (let q = 0; q < segs.length; q++) col[q] = segs[q][n]; col.sort(); let s = 0, m = 0; for (let q = corte; q < segs.length - corte; q++) { s += col[q]; m++; } T[n] = s / m; } return T; };
-  // o clique "puro", igual ao que o metrônomo tocou: só para achar os cliques quando não há contagem
-  const sintetico = forte => {
-    const T = new Float32Array(L), madeira = info.som === "madeira", f = madeira ? (forte ? 1250 : 880) : (forte ? 1760 : 1180);
-    const durC = madeira ? 0.05 : 0.03, vol = (info.vol || 0.7) * (forte ? 0.5 : 0.3);
-    for (let n = 0; n < Math.round((durC + 0.005) * sr) && pre + n < L; n++) {
-      const t = n / sr; let v = 0;
-      if (madeira) v = (2 / Math.PI) * Math.asin(Math.sin(2 * Math.PI * f * t));
-      else for (let h = 1; h * f < sr / 2; h += 2) v += (4 / Math.PI) * Math.sin(2 * Math.PI * h * f * t) / h;
-      const g = t < 0.002 ? 0.0001 * Math.pow(vol / 0.0001, t / 0.002) : vol * Math.pow(0.0001 / vol, Math.min(1, (t - 0.002) / (durC - 0.002)));
-      T[pre + n] = v * g;
-    }
-    return T;
-  };
-  const modelo = {};
-  const montarModelos = (primeira) => {
-    for (const forte of [true, false]) {
-      const grupo = cliques.filter(c => c.forte === forte); if (!grupo.length) { modelo[forte] = null; continue; }
-      const cont = grupo.filter(c => c.cont);
-      // na contagem só toca o metrônomo; sem contagem, começa pelos primeiros cliques (deriva ainda pequena)
-      if (!cont.length && primeira) { modelo[forte] = sintetico(forte); continue; }
-      const fonte = cont.length ? cont : grupo;
-      modelo[forte] = fonte.length >= 3 ? mediaAparada(fonte.map(c => pega(y, posDe(c)))) : (() => { const T = new Float32Array(L); fonte.forEach(c => pega(y, posDe(c)).forEach((v, n) => T[n] += v / fonte.length)); return T; })();
-    }
-  };
-  // 2) mede o desvio de cada clique em relação à reta e ajusta a reta (robusto contra o violino)
-  const medir = () => {
-    const pts = [];
-    for (const c of cliques) {
-      const T = modelo[c.forte]; if (!T) continue;
-      const dT = new Float32Array(Ld); for (let n = 1; n < Ld; n++) dT[n] = T[pre + n] - T[pre + n - 1];
-      let eT = 0; for (const v of dT) eT += v * v;
-      const base = Math.round(posDe(c)), vals = new Float64Array(2 * busca + 1);
-      let mj = 0;
-      for (let l = -busca; l <= busca; l++) {
-        let s = 0, e = 0;
-        for (let n = 1; n < Ld; n++) { const i = base + l + n; if (i < 0 || i >= d.length) continue; s += d[i] * dT[n]; e += d[i] * d[i]; }
-        const r = s / Math.sqrt(eT * e + 1e-20); vals[l + busca] = r; if (r > vals[mj]) mj = l + busca;
-      }
-      let fr = 0; if (mj > 0 && mj < vals.length - 1) { const p = vals[mj - 1], q = vals[mj], r = vals[mj + 1], den = p - 2 * q + r; if (den < 0) fr = 0.5 * (p - r) / den; }
-      pts.push({k: c.k, desvio: (base + mj - busca + fr) - posDe(c), corr: vals[mj]});
-    }
-    // ajuste robusto: começa pelos pontos mais confiáveis e vai descartando os que fogem da reta
-    let usa = pts.filter(p => p.corr > 0.5);
-    if (usa.length < 4) usa = pts.slice().sort((x, y2) => y2.corr - x.corr).slice(0, Math.max(4, pts.length >> 2));
-    for (let it = 0; it < 4; it++) {
-      const n = usa.length; let sk = 0, sd = 0, skk = 0, skd = 0;
-      for (const p of usa) { sk += p.k; sd += p.desvio; skk += p.k * p.k; skd += p.k * p.desvio; }
-      const den = n * skk - sk * sk, m = den ? (n * skd - sk * sd) / den : 0, c0 = (sd - m * sk) / n;
-      const res = usa.map(p => Math.abs(p.desvio - (c0 + m * p.k))).sort((x, y2) => x - y2), lim = Math.max(0.6, 3 * res[res.length >> 1]);
-      a += c0; b += m;
-      for (const p of pts) p.desvio -= c0 + m * p.k;
-      usa = pts.filter(p => Math.abs(p.desvio) < lim && p.corr > 0.2);
-      if (usa.length < 4) break;
-    }
-  };
-  montarModelos(true); medir(); montarModelos(false); medir(); montarModelos(false); medir(); montarModelos(false);
-
-  // 3) ganho de cada clique (suavizado entre vizinhos) e subtração do clique gravado
-  const ganhos = cliques.map(c => { const T = modelo[c.forte]; if (!T) return 1; const s = pega(y, posDe(c)); let p = 0, q = 0; for (let n = 0; n < pre + Ld; n++) { p += s[n] * T[n]; q += T[n] * T[n]; } return q > 0 ? p / q : 1; });
-  const suav = ganhos.map((_, i) => { const w = ganhos.slice(Math.max(0, i - 4), i + 5).sort((x, y2) => x - y2); return w[w.length >> 1]; });
-  const hermite = (T, x) => { const i = Math.floor(x), t = x - i; const p0 = T[i - 1] || 0, p1 = T[i] || 0, p2 = T[i + 1] || 0, p3 = T[i + 2] || 0;
-    return p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0))); };
-  const out = Float32Array.from(y), rampa = 0.03 * sr;
-  cliques.forEach((c, q) => {
-    const T = modelo[c.forte]; if (!T) return;
-    const g = suav[q], ini = posDe(c) - pre;
-    for (let i = Math.max(0, Math.ceil(ini)); i <= Math.min(y.length - 1, Math.floor(ini + L - 3)); i++) {
-      const x = i - ini, jan = x > L - rampa ? Math.max(0, (L - 3 - x) / (rampa - 3)) : 1;
-      out[i] -= g * jan * hermite(T, x);
-    }
-  });
-  // 4) confere: energia de agudos A MAIS nos instantes de clique, comparada com o meio do caminho entre cliques
-  const excesso = x => { let ec = 0, er = 0;
-    for (const c of cliques) { const i0 = Math.round(posDe(c)), j0 = Math.round(posDe(c) + b / 2);
-      for (let n = 1; n < Ld; n++) { const i = i0 + n, j = j0 + n; if (j >= x.length) break; ec += (x[i] - x[i - 1]) ** 2; er += (x[j] - x[j - 1]) ** 2; } }
-    return ec - er; };
-  const exA = excesso(y), exD = excesso(out);
-  const reducaoDb = !(exA > 0) ? null : (exD <= exA * 1e-4 ? 40 : 10 * Math.log10(exA / exD));
-  // com contagem: o 1º clique toca sozinho; se ele se destaca do silêncio antes dele, o clique foi gravado
-  let audivel = false;
-  if (nCont > 0) {
-    const p0 = posDe(cliques[0]); let ec = 0, er = 0, nc = 0, nr = 0;
-    for (let i = Math.max(1, Math.round(p0)); i < Math.round(p0 + Ld); i++) { ec += d[i] * d[i]; nc++; }
-    for (let i = Math.max(1, Math.round(p0 - 0.25 * sr)); i < Math.round(p0 - 0.03 * sr); i++) { er += d[i] * d[i]; nr++; }
-    audivel = nr > 100 && (ec / nc) > 6 * (er / nr + 1e-20);
-  }
-  const aceita = nCont > 0 ? audivel : (reducaoDb !== null && reducaoDb > 3);
-  if (!aceita) return {detectado: false, destaque, reducaoDb};
-  return {detectado: true, y: out, reducaoDb, deslocMs: Math.round((a / sr - info.primeiro) * 1000), destaque, primeiro: a / sr + 0.0015, bpm: 60 * sr / b};
-}
-function codificarWav(x, sr) {
-  const n = x.length, buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf);
-  const txt = (o, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(o + i, t.charCodeAt(i)); };
-  txt(0, "RIFF"); dv.setUint32(4, 36 + n * 2, true); txt(8, "WAVEfmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
-  dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); txt(36, "data"); dv.setUint32(40, n * 2, true);
-  for (let i = 0; i < n; i++) dv.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, Math.round(x[i] * 32767))), true);
-  return new Blob([buf], {type: "audio/wav"});
-}
-async function tirarClique(blob, info) {
-  const buf = await audio.ctx.decodeAudioData(await blob.arrayBuffer());
-  const sr = buf.sampleRate, y = new Float32Array(buf.length);
-  for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let i = 0; i < y.length; i++) y[i] += ch[i] / buf.numberOfChannels; }
-  const r = limparMetronomo(y, sr, info);
-  if (!r.detectado) return null;
-  return {blob: codificarWav(r.y, sr), primeiro: r.primeiro, bpm: r.bpm};
-}
 const grav = {stream: null, rec: null, pedacos: [], inicio: 0, raf: 0, analisador: null, fonte: null, mime: ""};
 function avisoRec(msg) { const a = $("recAviso"); a.textContent = msg || ""; a.hidden = !msg; }
 function microfoneBloqueado() {
@@ -2218,7 +2081,7 @@ async function comecarGravacao() {
       const c = audio.ctx, c0 = c.currentTime, c1 = c0 + 0.35;
       metro.iniciar(c1, true);
       // momento do 1º clique na gravação: espera + atraso de saída do som
-      grav.metroInfo = {bpm: metro.bpm, porCompasso: metro.comp, contagem: metro.cont, som: metro.som, vol: metro.vol, primeiro: (c1 - c0) + (c.outputLatency || 0) + (c.baseLatency || 0)};
+      grav.metroInfo = {bpm: metro.bpm, porCompasso: metro.comp, contagem: metro.cont, primeiro: (c1 - c0) + (c.outputLatency || 0) + (c.baseLatency || 0)};
     };
   }
   grav.rec.start(250);
@@ -2265,45 +2128,25 @@ async function gravacaoTerminou() {
   const agora = new Date(), id = agora.getTime();
   const nome = "Gravação " + agora.toLocaleDateString("pt-BR") + " " + agora.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
   const g = {id, nome, dur, tipo, blob, grade: grav.metroInfo || null};
-  const mi = grav.metroInfo;
-  if (mi && mi.som !== "visual") {
-    if (mi.contagem > 0) {
-      $("recDica").textContent = "Procurando o clique do metrônomo na gravação…";
-      await new Promise(r => setTimeout(r, 30));
-      try {
-        const lim = await tirarClique(blob, mi);
-        if (lim) {
-          g.blobOriginal = blob; g.tipoOriginal = tipo; g.blob = lim.blob; g.tipo = "audio/wav"; g.limpo = true;
-          // a posição real de cada clique deixa a grade exata
-          g.grade = {...mi, primeiro: lim.primeiro, bpm: lim.bpm, exato: true};
-        }
-      } catch (e) {}
-      $("recDica").textContent = "Toque no botão vermelho e toque o violino. Ao parar, a gravação abre sozinha para análise e fica guardada na lista abaixo.";
-    }
-  }
   await banco.salvar(g);
   listarTakes();
-  await analisarTake(g);
-  if (g.limpo) setStatus("O clique do metrônomo entrou na gravação e foi removido. " + $("status").textContent);
-  else if (mi && mi.som !== "visual" && !(mi.contagem > 0)) setStatus("Dica: se gravar sem fone, deixe a contagem ligada; é nela que o programa aprende o som do clique para tirá-lo da gravação. " + $("status").textContent);
+  analisarTake(g);
 }
-const extDe = tipo => tipo.includes("wav") ? "wav" : tipo.includes("mp4") || tipo.includes("aac") ? "m4a" : tipo.includes("ogg") ? "ogg" : "webm";
-async function analisarTake(g, original) {
-  const blob = original && g.blobOriginal ? g.blobOriginal : g.blob, tipo = original && g.blobOriginal ? g.tipoOriginal : g.tipo;
-  const bytes = await blob.arrayBuffer();
-  await abrirAudio(bytes, g.nome + (original ? " (com clique)" : "") + "." + extDe(tipo), tipo, false, g.grade || null);
+const extDe = tipo => tipo.includes("mp4") || tipo.includes("aac") ? "m4a" : tipo.includes("ogg") ? "ogg" : "webm";
+async function analisarTake(g) {
+  const bytes = await g.blob.arrayBuffer();
+  await abrirAudio(bytes, g.nome + "." + extDe(g.tipo), g.tipo, false, g.grade || null);
   window.scrollTo({top: document.querySelector(".transport").offsetTop - 10, behavior: "smooth"});
 }
 async function listarTakes() {
   const lista = await banco.listar(), box = $("takes");
   if (!lista.length) { box.innerHTML = '<div class="hint">Nenhuma gravação ainda.</div>'; return; }
-  box.innerHTML = lista.map(g => `<div class="take" data-id="${g.id}"><span class="nm">${g.nome}</span><span class="info">${fmt(g.dur)}${g.grade ? ` · ♩ ${Math.round(g.grade.bpm)} BPM` : ""}${g.limpo ? " · clique removido" : ""}</span><span class="spacer"></span><button data-a="analisar" class="primary">Analisar</button>${g.limpo ? '<button data-a="original" title="Abre a gravação como foi feita, com o clique">Original</button>' : ""}<button data-a="salvar">Salvar arquivo</button><button data-a="apagar" class="ghost">Apagar</button></div>`).join("");
+  box.innerHTML = lista.map(g => `<div class="take" data-id="${g.id}"><span class="nm">${g.nome}</span><span class="info">${fmt(g.dur)}${g.grade ? ` · ♩ ${g.grade.bpm} BPM` : ""}</span><span class="spacer"></span><button data-a="analisar" class="primary">Analisar</button><button data-a="salvar">Salvar arquivo</button><button data-a="apagar" class="ghost">Apagar</button></div>`).join("");
 }
 $("takes").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
   const id = +b.closest(".take").dataset.id, g = (await banco.listar()).find(x => x.id === id); if (!g) return;
   if (b.dataset.a === "analisar") analisarTake(g);
-  else if (b.dataset.a === "original") analisarTake(g, true);
   else if (b.dataset.a === "salvar") salvarArquivo(g.nome.replace(/[\/:]/g, "-") + "." + extDe(g.tipo), g.blob);
   else if (b.dataset.a === "apagar") {
     if (b.dataset.confirma) { await banco.apagar(id); listarTakes(); }
@@ -2339,7 +2182,7 @@ async function abrirAudio(bytes, nome, tipoMime, exemplo, gradeInfo) {
   $("meta").textContent = "Ouvindo as notas do violino…";
   S.an = await analisar(y, p => { $("prog").style.width = Math.round(p * 100) + "%"; });
   estimarTom(); montarSeletorTom();
-  if (gradeInfo) { S.grade = gradeDoMetronomo(gradeInfo, S.dur); if (!gradeInfo.exato) autoAlinhar(envelopeAtaques(y)); }
+  if (gradeInfo) { S.grade = gradeDoMetronomo(gradeInfo, S.dur); autoAlinhar(envelopeAtaques(y)); }
   renderTempos();
   $("progWrap").hidden = true;
   $("meta").innerHTML = `<b>${nome.replace(/</g, "&lt;")}</b> · ${fmt(S.dur)} · afinação Lá = ${S.an.ref.toFixed(0)} Hz` + (exemplo ? ` · <span class="badge">exemplo</span>` : "");
