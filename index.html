@@ -56,7 +56,7 @@
 }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 14px; line-height: 1.45; }
-.app { max-width: 1320px; margin: 0 auto; padding: 0 16px; padding-block: 14px 48px; display: grid; gap: 14px; }
+.app { max-width: 1320px; margin: 0 auto; padding: 0 16px; padding-block: 14px 190px; display: grid; gap: 14px; }
 h1 { font-stretch: 112%; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; margin: 0; }
 h1 span { color: var(--red); }
 h2 { font-size: 1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
@@ -100,7 +100,7 @@ input[type="range"] { accent-color: var(--indigo); }
 .ch { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; }
 .ch button { min-height: 30px; padding: 3px 9px; font-size: 0.8rem; }
 .ch input { width: 70px; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 100%; }
 .seg button { border: 0; border-radius: 0; min-height: 34px; background: var(--raised); }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button.on { background: var(--ink); color: var(--bg); }
@@ -191,6 +191,71 @@ details summary { cursor: pointer; font-weight: 600; }
 .take .info { color: var(--muted); font-size: 0.82rem; font-family: var(--font-mono); }
 .take button { min-height: 32px; padding: 3px 10px; font-size: 0.84rem; }
 .aviso { padding: 10px 12px; border-radius: 8px; background: var(--red-soft); color: var(--ink); font-size: 0.86rem; }
+/* digitações */
+.diag { display: block; }
+.digs { display: flex; flex-wrap: wrap; gap: 8px; }
+.dig { display: grid; justify-items: center; gap: 2px; padding: 6px 8px 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--raised); min-width: 64px; }
+.dig b { font-family: var(--font-mono); font-size: 0.95rem; }
+.dig small { font-family: var(--font-mono); color: var(--muted); font-size: 0.7rem; }
+.dig .diag { width: 46px; height: auto; }
+.dig-ed { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.dig-ed .diag { width: 62px; height: auto; }
+.dig-ed .txt { display: grid; gap: 3px; font-size: 0.88rem; }
+.dig-ed .txt b { font-family: var(--font-mono); color: var(--indigo); }
+table.cifra tr.sub th { font-weight: 400; }
+table.cifra th .vtag { display: inline-block; min-width: 1.3em; text-align: center; font-size: 0.68rem; border-radius: 4px; padding: 0 3px; background: var(--sunk); color: var(--muted); margin-left: 4px; }
+table.cifra tr.ativa th .vtag { background: var(--indigo); color: var(--bg); }
+table.cifra tr.fimverso td { padding-bottom: 6px; }
+/* telinha do acorde */
+.telinha { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; width: 236px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 34px -16px #000a; padding: 10px 12px; display: grid; gap: 8px; }
+.telinha .hd { display: flex; align-items: center; gap: 6px; }
+.telinha .hd button { min-height: 28px; padding: 2px 8px; white-space: nowrap; }
+.telinha .agora { display: flex; align-items: center; gap: 12px; }
+.telinha .agora .nm { font-family: var(--font-mono); font-weight: 800; font-size: 2.1rem; line-height: 1; min-width: 2.3em; }
+.telinha .agora .diag { width: 64px; height: auto; }
+.telinha .agora small { display: block; font-family: var(--font-mono); color: var(--muted); font-size: 0.72rem; margin-top: 4px; }
+.telinha .prox { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 7px; font-size: 0.8rem; color: var(--muted); }
+.telinha .prox b { color: var(--ink); font-family: var(--font-mono); font-size: 1.1rem; }
+.telinha .prox .diag { width: 34px; height: auto; margin-left: auto; }
+@media (max-width: 600px) {
+  .telinha { left: 12px; right: 12px; width: auto; max-width: none; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); grid-template-columns: 1fr auto; gap: 4px 12px; padding: 8px 10px; }
+  .telinha .hd { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; align-items: stretch; justify-content: center; }
+  .telinha .hd .lbl, .telinha .hd .spacer { display: none; }
+  .telinha .agora { grid-column: 1; grid-row: 1; gap: 10px; }
+  .telinha .agora .nm { font-size: 1.7rem; }
+  .telinha .agora .diag { width: 44px; }
+  .telinha .prox { grid-column: 1; grid-row: 2; border-top: 0; padding-top: 0; }
+  .telinha .prox .diag { display: none; }
+}
+.pill { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; border-radius: 999px; font-family: var(--font-mono); box-shadow: 0 10px 24px -14px #000a; background: var(--surface); }
+.palco { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; grid-template-rows: auto 1fr auto; gap: 12px; padding: 16px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.palco .topo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--font-mono); color: var(--muted); }
+.palco .topo b { color: var(--ink); }
+.palco .centro { display: flex; align-items: center; justify-content: center; gap: 6vw; flex-wrap: wrap; min-height: 0; }
+.palco .grande, .palco .seguinte { display: grid; justify-items: center; gap: 10px; }
+.palco .grande .nm { font-family: var(--font-mono); font-weight: 800; font-size: clamp(3.2rem, 15vw, 10rem); line-height: 1; }
+.palco .grande .diag { height: min(46vh, 62vw); width: auto; }
+.palco .grande small, .palco .seguinte small { font-family: var(--font-mono); color: var(--muted); font-size: clamp(0.9rem, 2.4vw, 1.3rem); }
+.palco .seguinte { opacity: 0.6; }
+.palco .seguinte .nm { font-family: var(--font-mono); font-weight: 700; font-size: clamp(1.8rem, 6vw, 3.6rem); }
+.palco .seguinte .diag { height: min(24vh, 30vw); width: auto; }
+.palco .rodape { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.palco .rodape button { min-height: 48px; padding: 6px 20px; font-size: 1rem; }
+.palco .pulsos { display: flex; gap: 10px; }
+.palco .pulsos i { width: 16px; height: 16px; border-radius: 50%; background: var(--sunk); border: 1px solid var(--line); }
+.palco .pulsos i.on { background: var(--indigo); }
+.palco .pulsos i.on.forte { background: var(--red); }
+/* metrônomo e tempos */
+.metro { display: grid; gap: 10px; padding: 12px; border-radius: 9px; background: var(--sunk); }
+.metro .row label { display: flex; align-items: center; gap: 6px; font-size: 0.84rem; }
+.bpm { font-family: var(--font-mono); font-size: 1.1rem; width: 4.2em; text-align: center; }
+.luzes { display: flex; gap: 8px; align-items: center; }
+.luz { width: 18px; height: 18px; border-radius: 50%; background: var(--raised); border: 1px solid var(--line); }
+.luz.on { background: var(--indigo); border-color: var(--indigo); }
+.luz.on.forte { background: var(--red); border-color: var(--red); }
+.contagem { font-family: var(--font-mono); font-weight: 700; color: var(--red); min-height: 1.3em; }
+.tapbig { min-height: 64px; min-width: 170px; font-size: 1.05rem; }
+.tapbig.pisca { background: var(--red); border-color: var(--red); color: #fff; }
 @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } .recbtn.on { animation: none; } }
 </style>
 
@@ -220,6 +285,23 @@ details summary { cursor: pointer; font-weight: 600; }
       <button class="recbtn" id="recBtn" aria-label="Começar a gravar"><span></span></button>
       <div class="rec-clock" id="recClk">0:00.0</div>
       <div class="nivel"><span class="lbl" id="recNivelTxt">Nível do microfone</span><div class="trilho"><div id="recNivel"></div></div></div>
+    </div>
+    <div class="metro">
+      <div class="row"><h3>Metrônomo</h3><span class="spacer"></span><label class="check"><input type="checkbox" id="mOn" checked> Tocar enquanto grava</label></div>
+      <div class="row">
+        <button id="mMenos" aria-label="Mais devagar">−</button><input id="mBpm" class="bpm" type="number" min="30" max="260" value="100" aria-label="Andamento em BPM"><button id="mMais" aria-label="Mais rápido">+</button><span class="lbl">BPM</span>
+        <input id="mBpmR" type="range" min="40" max="220" value="100" aria-label="Andamento" style="flex:1;min-width:120px">
+        <button id="mTap" title="Toque 4 vezes no ritmo da música">Bater andamento</button>
+      </div>
+      <div class="row">
+        <label>Compasso <select id="mComp"><option value="2">2/4</option><option value="3">3/4</option><option value="4">4/4</option></select></label>
+        <label>Contagem <select id="mCont"><option value="0">sem</option><option value="1" selected>1 compasso</option><option value="2">2 compassos</option></select></label>
+        <label>Som <select id="mSom"><option value="clique">clique</option><option value="madeira">madeira</option><option value="visual">só piscar</option></select></label>
+        <label>Volume <input id="mVol" type="range" min="0.1" max="1" step="0.05" value="0.7" style="width:80px"></label>
+        <button id="mTeste">Ouvir</button>
+      </div>
+      <div class="row"><div class="luzes" id="mLuzes"></div><span class="contagem" id="mCont2"></span></div>
+      <div class="hint">Use fone de ouvido: assim o clique não entra na gravação. A grade de tempos fica guardada junto e o programa já sabe onde cai cada compasso.</div>
     </div>
     <div class="hint" id="recDica">Toque no botão vermelho e toque o violino. Ao parar, a gravação abre sozinha para análise e fica guardada na lista abaixo.</div>
     <div class="field"><span class="lbl">Gravações neste aparelho</span><div class="takes" id="takes"></div></div>
@@ -261,6 +343,35 @@ details summary { cursor: pointer; font-weight: 600; }
 
   <div class="cols">
     <div class="stack">
+      <section class="panel" id="painelTempos">
+        <h2><span class="n">♩</span>Tempos <span class="hint" style="font-weight:400">(opcional)</span></h2>
+        <div class="hint" id="gradeInfo"></div>
+        <div class="row">
+          <button id="tapModo">Bater os tempos</button>
+          <button id="tapBtn" class="primary tapbig" hidden>Tempo <kbd>T</kbd></button>
+          <span class="mono hint" id="tapConta"></span>
+        </div>
+        <details id="gCriarBox">
+          <summary>Criar grade pelo andamento (BPM)</summary>
+          <div class="row" style="margin-top:8px">
+            <label class="lbl" for="gBpm">BPM</label><input id="gBpm" type="number" min="30" max="260" value="100">
+            <label class="lbl" for="gIni">1º tempo</label><input class="time" id="gIni" type="text" inputmode="decimal">
+            <button id="gIniAqui">Aqui</button><button id="gCriar">Criar grade</button>
+          </div>
+        </details>
+        <div id="gControles" hidden>
+          <div class="row">
+            <label class="lbl" for="gComp">Tempos por compasso</label>
+            <select id="gComp"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+            <button id="gComp1" title="O tempo mais perto do cursor passa a ser o 1º tempo do compasso 1">Compasso 1 aqui</button>
+          </div>
+          <div class="param"><label for="gDesloc">Ajuste fino da grade</label><output id="gDeslocV">0 ms</output><input id="gDesloc" type="range" min="-300" max="300" step="5" value="0"></div>
+          <label class="check"><input type="checkbox" id="gGrudar" checked> Linhas de verso e acorde grudam nos tempos</label>
+          <label class="check"><input type="checkbox" id="gClique"> Ouvir o clique do tempo na reprodução</label>
+          <div class="row"><button id="gLimpar" class="ghost">Apagar grade</button></div>
+        </div>
+      </section>
+
       <section class="panel">
         <h2><span class="n">1</span>Versos</h2>
         <div class="passo">
@@ -278,6 +389,10 @@ details summary { cursor: pointer; font-weight: 600; }
           <input class="time" id="sEnd" type="text" inputmode="decimal" aria-label="Fim da música">
           <button id="endHere">Marcar aqui</button>
         </div>
+        <div class="passo" id="passoComp" hidden>
+          <span class="lbl">Compassos por verso (usa a grade de tempos; deixe vazio para usar o 2º verso)</span>
+          <input id="nComp" type="number" min="1" max="64" placeholder="ex.: 8" aria-label="Compassos por verso">
+        </div>
         <div class="passo">
           <span class="lbl">Acordes por verso</span>
           <input id="nParts" type="number" min="1" max="32" value="8" aria-label="Acordes por verso">
@@ -292,6 +407,12 @@ details summary { cursor: pointer; font-weight: 600; }
           <span class="lbl">Quem toca</span>
           <div class="seg" role="group" aria-label="Instrumentos">
             <button id="instB">Só brácsa</button><button id="instBB">Brácsa + bőgő</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">Brácsa</span>
+          <div class="seg" role="group" aria-label="Cordas do brácsa">
+            <button id="cordas3">3 cordas (G-D-A)</button><button id="cordas4">4 cordas (C-G-D-A)</button>
           </div>
         </div>
         <div class="field">
@@ -317,15 +438,35 @@ details summary { cursor: pointer; font-weight: 600; }
         <button id="copyTxt">Copiar cifra</button>
         <button id="saveTxt">Baixar .txt</button>
       </div>
+      <div class="seg" id="versoes" role="group" aria-label="Versão da harmonia">
+        <button data-ver="simples">Simplificada</button><button data-ver="inter">Intermediária</button><button data-ver="completa">Completa</button><button data-ver="comparar">Comparar as 3</button>
+      </div>
+      <div class="hint" id="verDesc"></div>
       <div class="status" id="status"></div>
       <div class="grid-wrap"><table class="cifra" id="grid"></table></div>
       <div class="editor" id="editor" hidden></div>
+      <div class="field"><span class="lbl" id="digTit">Digitações</span><div class="digs" id="digs"></div></div>
       <details>
         <summary>Ver a cifra em texto</summary>
         <textarea id="txt" readonly aria-label="Cifra em texto"></textarea>
       </details>
     </section>
   </div>
+</div>
+
+<aside class="telinha" id="telinha" hidden aria-label="Acorde agora">
+  <div class="hd"><span class="lbl">Acorde agora</span><span class="spacer"></span><button id="tlGrande" title="Mostrar grande, para ler de longe">Ampliar</button><button id="tlMin" aria-label="Minimizar">–</button></div>
+  <div class="agora"><div><div class="nm" id="tlNome">–</div><small id="tlDig"></small></div><div id="tlDiag"></div></div>
+  <div class="prox"><span>depois</span><b id="tlProx">–</b><span id="tlProxDiag"></span></div>
+</aside>
+<button class="pill" id="tlPill" hidden aria-label="Mostrar o acorde atual">–</button>
+<div class="palco" id="palco" hidden role="dialog" aria-label="Acordes em tela cheia">
+  <div class="topo"><span id="pcInfo"></span><span class="spacer"></span><div class="pulsos" id="pcPulsos"></div></div>
+  <div class="centro">
+    <div class="grande"><div class="nm" id="pcNome">–</div><div id="pcDiag"></div><small id="pcDig"></small></div>
+    <div class="seguinte"><small>depois</small><div class="nm" id="pcProx">–</div><div id="pcProxDiag"></div></div>
+  </div>
+  <div class="rodape"><button id="pcPlay" class="primary">Tocar</button><button id="pcFechar">Fechar</button></div>
 </div>
 
 <script>
@@ -346,6 +487,88 @@ const TIPOS = {
 };
 const VOCAB = [];
 for (const t of ["", "m", "7"]) for (let r = 0; r < 12; r++) VOCAB.push({root:r, type:t});
+/* três versões de harmonia */
+const VERSOES = {
+  simples:  {nome: "Simplificada",  tag: "S", tipos: ["", "m"],      troca: 0.10, desc: "Só acordes maiores; menor apenas quando a melodia pede muito. Parte da Intermediária."},
+  inter:    {nome: "Intermediária", tag: "I", tipos: ["", "m"],      troca: 0.06, desc: "Acordes maiores e menores. É a base das outras duas: o que você corrigir aqui vale para elas também."},
+  completa: {nome: "Completa",      tag: "C", tipos: ["", "m", "7"], troca: 0.06, desc: "A Intermediária com as dominantes em sétima: o acorde que resolve uma quinta abaixo vira sétima (E7 → Am, D7 → G, A7 → Dm)."},
+};
+const VOCAB_V = {};
+for (const [k, V] of Object.entries(VERSOES)) { VOCAB_V[k] = []; for (const t of V.tipos) for (let r = 0; r < 12; r++) VOCAB_V[k].push({root: r, type: t}); }
+function bonusSimples(c, ton, modo) {
+  const g = (c.root - ton + 12) % 12;
+  if (c.type === "") {
+    const fortes = modo === "maior" ? [0, 5, 7] : [0, 3, 5, 7, 8, 10], fracos = modo === "maior" ? [2, 4, 9] : [2];
+    return fortes.includes(g) ? 0.1 : fracos.includes(g) ? 0.04 : -0.04;
+  }
+  const menorDaCasa = modo === "maior" ? [2, 4, 9] : [0, 5, 7];
+  return -0.2 + (menorDaCasa.includes(g) ? 0.06 : 0);
+}
+function notaVersao(ver, a, p, ton, modo) { return pontuar(a, p) + (ver === "simples" ? bonusSimples(a, ton, modo) : bonusTonal(a, ton, modo)); }
+
+/* digitações do brácsa */
+const AFINACOES = {
+  3: {nomes: ["G", "D", "A"], midi: [55, 62, 57], rot: "3 cordas (G-D-A)"},
+  4: {nomes: ["C", "G", "D", "A"], midi: [48, 55, 62, 69], rot: "4 cordas (C-G-D-A)"},
+};
+/* quadro de digitações do brácsa de 3 cordas: casa em cada corda (G, D, A).
+   B7 e H7 (B♭7 e B7) corrigidos uma casa acima do quadro original. */
+const QUADRO3 = {
+  "0:": [0,2,3], "2:": [7,4,0], "4:": [1,2,2], "5:": [5,3,0], "7:": [0,0,2], "9:": [6,2,0], "11:": [4,4,6],
+  "1:": [1,3,4], "3:": [0,1,1], "6:": [3,4,4], "8:": [1,1,3], "10:": [3,3,5],
+  "0:m": [0,1,3], "2:m": [7,3,0], "4:m": [0,2,2], "5:m": [1,3,3], "7:m": [0,0,1], "9:m": [5,2,0],
+  "10:m": [3,3,4], "11:m": [4,4,5], "1:m": [1,2,4], "6:m": [2,4,4],
+  "0:7": [0,2,1], "2:7": [5,4,0], "4:7": [1,0,2], "5:7": [5,1,0], "7:7": [0,3,2], "9:7": [0,2,4],
+  "10:7": [3,6,5], "11:7": [4,7,6], "6:7": [3,4,7], "3:7": [0,1,4], "8:7": [1,4,3],
+};
+function gerarDigitacao(c, cordas, folga) {
+  const af = AFINACOES[cordas].midi, n = af.length, tons = notasDe(c), maxCasa = folga ? 12 : 9, maxSpan = folga ? 4 : 3;
+  const [raiz, terca, quinta, setima] = tons;
+  const opc = af.map(m => { const o = []; for (let f = 0; f <= maxCasa; f++) if (tons.includes((m + f) % 12)) o.push(f); return o; });
+  let melhor = null;
+  const rec = (i, atual) => {
+    if (i === n) {
+      const set = new Set(atual.map((f, j) => (af[j] + f) % 12));
+      if (!set.has(terca)) return;
+      if (setima !== undefined) { if (!set.has(setima) || (!set.has(raiz) && !set.has(quinta))) return; if (n >= 4 && !set.has(raiz)) return; }
+      else if (!set.has(raiz) || !set.has(quinta)) return;
+      const fr = atual.filter(f => f > 0), mx = fr.length ? Math.max(...fr) : 0, span = fr.length ? mx - Math.min(...fr) : 0;
+      if (span > maxSpan) return;
+      const custo = span + 0.15 * atual.reduce((x, y) => x + y, 0) + 0.25 * mx + (set.has(raiz) ? 0 : 0.2) + 0.1 * fr.length;
+      if (!melhor || custo < melhor.custo) melhor = {custo, f: atual.slice()};
+      return;
+    }
+    for (const f of opc[i]) { atual.push(f); rec(i + 1, atual); atual.pop(); }
+  };
+  rec(0, []);
+  if (!melhor && !folga) return gerarDigitacao(c, cordas, true);
+  return melhor ? melhor.f : af.map(() => 0);
+}
+const cacheDig = {};
+function digitacao(c, cordas) {
+  cordas = cordas || (typeof S !== "undefined" ? S.cordas : 3);
+  const k = cordas + "|" + chordKey(c);
+  if (!cacheDig[k]) cacheDig[k] = (cordas === 3 && QUADRO3[chordKey(c)]) ? QUADRO3[chordKey(c)].slice() : gerarDigitacao(c, cordas);
+  return cacheDig[k];
+}
+const vozBracsa = c => { const af = AFINACOES[S.cordas].midi; return digitacao(c).map((f, i) => af[i] + f).sort((a, b) => a - b); };
+function digTexto(c) { const af = AFINACOES[S.cordas]; return af.nomes.join("-") + ": " + digitacao(c).join("-"); }
+function digNotas(c) { const af = AFINACOES[S.cordas]; return digitacao(c).map((f, i) => NOMES[(af.midi[i] + f) % 12]).join(" "); }
+function diagramaSVG(c) {
+  const af = AFINACOES[S.cordas], n = af.nomes.length, dig = digitacao(c);
+  const R = Math.max(5, Math.max(...dig) + 1), esp = 16, rowH = 11, top = 15;
+  const W = 12 * 2 + esp * (n - 1), H = top + R * rowH + 14;
+  const x = i => 12 + i * esp, y = k => top + k * rowH;
+  let s = `<svg class="diag" viewBox="0 0 ${W} ${H}" role="img" aria-label="${nomeAcorde(c)}: ${digTexto(c)}">`;
+  for (let k = 0; k <= R; k++) s += `<line x1="${x(0)}" x2="${x(n - 1)}" y1="${y(k)}" y2="${y(k)}" stroke="var(--ink)" stroke-width="${k === 0 ? 3 : 1}"/>`;
+  for (let i = 0; i < n; i++) s += `<line x1="${x(i)}" x2="${x(i)}" y1="${y(0)}" y2="${y(R)}" stroke="var(--ink)" stroke-width="1.6"/>`;
+  dig.forEach((f, i) => {
+    if (f === 0) s += `<circle cx="${x(i)}" cy="${top - 7}" r="3.3" fill="none" stroke="var(--ink)" stroke-width="1.3"/>`;
+    else s += `<circle cx="${x(i)}" cy="${y(f)}" r="4.4" fill="var(--red)"/>`;
+  });
+  af.nomes.forEach((nm, i) => { s += `<text x="${x(i)}" y="${H - 2}" text-anchor="middle" font-size="8" fill="var(--muted)" font-family="var(--font-mono)">${nm}</text>`; });
+  return s + "</svg>";
+}
 const chordKey = c => c.root + ":" + c.type;
 const notasDe = c => TIPOS[c.type].iv.map(i => (c.root + i) % 12);
 const nomeAcorde = c => NOMES[c.root] + c.type;
@@ -478,12 +701,15 @@ const S = {
   nome: "", dur: 0, url: null,
   an: null, keyAuto: {ton: 9, modo: "menor"}, keyOverride: null,
   verses: [], end: 0, nParts: 8,
-  estilo: "ugros", params: {}, beats: 2, inst: "ambos",
+  estilo: "ugros", params: {}, beats: 2, inst: "ambos", cordas: 3,
+  versao: "inter", comparar: false, sugV: {simples: [], inter: [], completa: []},
+  grade: null, grudar: true, cliqueRepro: false, batendo: false, telinha: "aberta",
   sug: [], sel: null, selLine: null,
   view: {t0: 0, pps: 40}, playing: false, loop: false, speed: 1,
 };
 const $ = id => document.getElementById(id);
 const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60); const r = s - m * 60; return m + ":" + (r < 10 ? "0" : "") + r.toFixed(1); };
+const fmt3 = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60); const r = s - m * 60; return m + ":" + (r < 10 ? "0" : "") + r.toFixed(2); };
 function parseT(txt) {
   txt = String(txt || "").trim().replace(",", ".");
   if (!txt) return null;
@@ -637,12 +863,14 @@ function bordas(v) {
   out.push(b);
   return out;
 }
-const parteVazia = () => ({chord: null, style: null, beats: null});
+const parteVazia = () => ({fix: {}, style: null, beats: null});
+const fixo = (P, ver) => (P.fix && P.fix[ver || S.versao]) || null;
 function novoVerso(start, n) { return {start, n, cuts: null, parts: Array.from({length: n}, parteVazia)}; }
 function redimensionar(V, n) { V.n = n; V.cuts = null; while (V.parts.length < n) V.parts.push(parteVazia()); V.parts.length = n; }
 function montarVersos() {
   const s1 = parseT($("s1").value), s2 = parseT($("s2").value), fim = parseT($("sEnd").value);
   const n = Math.max(1, Math.min(32, parseInt($("nParts").value) || 8));
+  if (batidas()) return montarPorTempos(s1, s2, fim, n);
   if (s1 === null) { setStatus("Marque onde começa o 1º verso.", true); return; }
   if (s2 === null || s2 <= s1 + 0.5) { setStatus("Marque onde começa o 2º verso (depois do 1º).", true); return; }
   const end = fim !== null && fim > s2 ? Math.min(fim, S.dur) : S.dur, D = s2 - s1;
@@ -651,6 +879,27 @@ function montarVersos() {
   if (!S.verses.length) S.verses.push(novoVerso(s1, n));
   S.sel = {v: 0, p: 0}; S.selLine = null;
   setStatus(`${S.verses.length} versos de ${D.toFixed(1)} s, ${n} acordes cada. Arraste as linhas para acertar.`);
+  mudouEstrutura();
+}
+function montarPorTempos(s1, s2, fim, n) {
+  if (s1 === null) { setStatus("Marque onde começa o 1º verso.", true); return; }
+  const pc = S.grade.porCompasso, nc = parseInt($("nComp").value), b0 = Math.round(beatDoTempo(s1));
+  let bpv = nc > 0 ? nc * pc : (s2 !== null ? Math.round(beatDoTempo(s2) - b0) : 0);
+  if (!(bpv >= 1)) { setStatus("Informe quantos compassos tem cada verso, ou marque o início do 2º verso.", true); return; }
+  const end = fim !== null && fim > s1 ? Math.min(fim, S.dur) : S.dur;
+  S.verses = []; S.nParts = n;
+  for (let v = 0; v < 400; v++) {
+    const ini = tempoDoBeat(b0 + v * bpv), fv = tempoDoBeat(b0 + (v + 1) * bpv);
+    if (ini >= S.dur - 0.2 || ini >= end - 0.5 * (fv - ini)) break;
+    const V = novoVerso(ini, n); V.cuts = [];
+    for (let k = 1; k < n; k++) V.cuts.push((tempoDoBeat(b0 + v * bpv + k * bpv / n) - ini) / (fv - ini));
+    S.verses.push(V);
+  }
+  if (!S.verses.length) S.verses.push(novoVerso(tempoDoBeat(b0), n));
+  S.end = Math.min(S.dur, tempoDoBeat(b0 + S.verses.length * bpv));
+  S.sel = {v: 0, p: 0}; S.selLine = null;
+  const porAc = bpv / n;
+  setStatus(`${S.verses.length} versos de ${+(bpv / pc).toFixed(2)} compassos (${bpv} tempos), ${n} acordes cada: ${Number.isInteger(porAc) ? porAc : porAc.toFixed(2)} tempo(s) por acorde.`);
   mudouEstrutura();
 }
 function inserirVerso(t) {
@@ -700,7 +949,7 @@ function grade(v) {
   return g;
 }
 function calcular() {
-  S.sug = [];
+  S.sugV = {simples: [], inter: [], completa: []}; S.sug = [];
   if (!S.an || !S.verses.length) return;
   const {ton, modo} = tom();
   definirGrafia(ton, modo);
@@ -714,11 +963,25 @@ function calcular() {
     const sim = ok > 8 ? eq / ok : 0;
     if (sim > 0.4) { parecidos[i].push(j); perfis[j].forEach((p, k) => { for (let c = 0; c < 12; c++) comb[i][k][c] += 0.8 * sim * p[c]; }); }
   }
-  const seq = [];
-  S.verses.forEach((V, v) => V.parts.forEach((P, k) => seq.push({v, k, p: norm(comb[v][k]), vazio: !comb[v][k].some(x => x > 0), fixo: P.chord})));
-  const K = VOCAB.length, TROCA = 0.06;
-  const G = seq.map(s => VOCAB.map(a => s.vazio ? 0 : pontuar(a, s.p) + bonusTonal(a, ton, modo)));
-  seq.forEach((s, i) => { if (s.fixo) { const fk = chordKey(s.fixo); VOCAB.forEach((a, j) => { G[i][j] = chordKey(a) === fk ? 10 : -10; }); } });
+  // a Intermediária é a base; a Simplificada e a Completa partem dela
+  S.sugV.inter = calcularVersao("inter", comb, parecidos, ton, modo, null);
+  const base = S.verses.map((V, v) => V.parts.map((P, k) => fixo(P, "inter") || S.sugV.inter[v][k].best));
+  S.sugV.simples = calcularVersao("simples", comb, parecidos, ton, modo, base);
+  S.sugV.completa = calcularCompleta(comb, parecidos, ton, modo, base);
+  S.sug = S.sugV[S.versao];
+}
+/* quanto um acorde concorda com o acorde da versão base (mesma fundamental, ou maior relativo de um menor) */
+function acordo(a, b) {
+  if (!b) return 0;
+  if (a.root === b.root) return a.type === b.type ? 0.1 : 0.07;
+  if (b.type === "m" && a.type === "" && a.root === (b.root + 3) % 12) return 0.04;
+  return 0;
+}
+function calcularVersao(ver, comb, parecidos, ton, modo, base) {
+  const VOC = VOCAB_V[ver], K = VOC.length, TROCA = VERSOES[ver].troca, seq = [];
+  S.verses.forEach((V, v) => V.parts.forEach((P, k) => seq.push({v, k, p: norm(comb[v][k]), vazio: !comb[v][k].some(x => x > 0), fixo: fixo(P, ver), base: base ? base[v][k] : null})));
+  const G = seq.map(s => VOC.map(a => (s.vazio ? 0 : notaVersao(ver, a, s.p, ton, modo)) + acordo(a, s.base)));
+  seq.forEach((s, i) => { if (s.fixo) { const fk = chordKey(s.fixo); VOC.forEach((a, j) => { G[i][j] = chordKey(a) === fk ? 10 : -10; }); } });
   let best = G[0].slice(); const back = [];
   for (let i = 1; i < seq.length; i++) {
     let mj = 0; for (let j = 1; j < K; j++) if (best[j] > best[mj]) mj = j;
@@ -729,19 +992,105 @@ function calcular() {
   let j = 0; for (let q = 1; q < K; q++) if (best[q] > best[j]) j = q;
   const escolha = new Array(seq.length); escolha[seq.length - 1] = j;
   for (let i = seq.length - 1; i > 0; i--) { j = back[i - 1][j]; escolha[i - 1] = j; }
-  S.verses.forEach(() => S.sug.push([]));
+  const out = S.verses.map(() => []);
   let ant = null;
   seq.forEach((s, i) => {
-    const local = VOCAB.map(a => ({a, g: s.vazio ? 0 : pontuar(a, s.p) + bonusTonal(a, ton, modo), cob: notasDe(a).reduce((x, n) => x + s.p[n], 0)})).sort((x, y) => y.g - x.g);
-    let ac = VOCAB[escolha[i]];
+    const local = VOC.map(a => ({a, g: s.vazio ? 0 : notaVersao(ver, a, s.p, ton, modo), cob: notasDe(a).reduce((x, n) => x + s.p[n], 0)})).sort((x, y) => y.g - x.g);
+    let ac = VOC[escolha[i]];
     if (s.vazio && ant) ac = ant;
-    const meu = s.vazio ? 0 : pontuar(ac, s.p) + bonusTonal(ac, ton, modo);
+    const meu = s.vazio ? 0 : notaVersao(ver, ac, s.p, ton, modo);
     const outro = local.find(x => chordKey(x.a) !== chordKey(ac));
-    S.sug[s.v][s.k] = {best: ac, alts: local.slice(0, 6), conf: s.vazio ? null : meu - (outro ? outro.g : 0), parecidos: parecidos[s.v]};
+    out[s.v][s.k] = {best: ac, alts: local.slice(0, 6), conf: s.vazio ? null : meu - (outro ? outro.g : 0), parecidos: parecidos[s.v]};
     ant = s.fixo || ac;
   });
+  return out;
 }
-function acordeFinal(v, k) { const P = S.verses[v].parts[k]; return P.chord || (S.sug[v] && S.sug[v][k] ? S.sug[v][k].best : null); }
+/* Completa: a mesma harmonia da base, com as dominantes em sétima */
+function calcularCompleta(comb, parecidos, ton, modo, base) {
+  const VOC = VOCAB_V.completa, seq = [];
+  S.verses.forEach((V, v) => V.parts.forEach((P, k) => seq.push({v, k, p: norm(comb[v][k]), vazio: !comb[v][k].some(x => x > 0), fixo: fixo(P, "completa"), base: base[v][k]})));
+  const fin = seq.map(s => ({...s.base}));
+  let i = 0;
+  while (i < seq.length) {
+    let f = i; while (f + 1 < seq.length && chordKey(fin[f + 1]) === chordKey(fin[i])) f++;
+    const X = fin[i], Yc = fin[f + 1];
+    const maxP = pc => { let m = 0; for (let q = i; q <= f; q++) m = Math.max(m, seq[q].p[pc]); return m; };
+    let vira = false;
+    if (Yc && (X.root + 5) % 12 === Yc.root && X.type !== "7") {
+      // resolve uma quinta abaixo: vira dominante com sétima, se a melodia não brigar
+      if (X.type === "") vira = maxP((X.root + 11) % 12) < 0.15;
+      else if (X.type === "m") vira = maxP((X.root + 3) % 12) < 0.12;
+    } else if (X.type === "" && maxP((X.root + 10) % 12) >= 0.12) vira = true; // a melodia toca a sétima
+    if (vira) for (let q = i; q <= f; q++) fin[q] = {root: X.root, type: "7", dom: true};
+    i = f + 1;
+  }
+  const out = S.verses.map(() => []);
+  seq.forEach((s, q) => {
+    const local = VOC.map(a => ({a, g: s.vazio ? 0 : notaVersao("completa", a, s.p, ton, modo), cob: notasDe(a).reduce((x, n) => x + s.p[n], 0)})).sort((x, y) => y.g - x.g);
+    const ac = {root: fin[q].root, type: fin[q].type}, meu = s.vazio ? 0 : notaVersao("completa", ac, s.p, ton, modo);
+    const outro = local.find(x => chordKey(x.a) !== chordKey(ac));
+    out[s.v][s.k] = {best: ac, alts: local.slice(0, 6), conf: s.vazio ? null : meu - (outro ? outro.g : 0), parecidos: parecidos[s.v], dom: !!fin[q].dom};
+  });
+  return out;
+}
+function acordeFinal(v, k, ver) {
+  ver = ver || S.versao;
+  const P = S.verses[v].parts[k], sg = S.sugV[ver];
+  return fixo(P, ver) || (sg && sg[v] && sg[v][k] ? sg[v][k].best : null);
+}
+
+/* ============================================================
+   Grade de tempos (metrônomo, tempos batidos ou BPM)
+   ============================================================ */
+function batidas() {
+  const g = S.grade; if (!g || !g.tempos || g.tempos.length < 2) return null;
+  const d = g.desloc || 0; return g.tempos.map(t => t + d);
+}
+function beatDoTempo(t, B) {
+  B = B || batidas(); const n = B.length;
+  if (t <= B[0]) return (t - B[0]) / (B[1] - B[0]);
+  if (t >= B[n - 1]) return n - 1 + (t - B[n - 1]) / (B[n - 1] - B[n - 2]);
+  let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (B[m] <= t) lo = m; else hi = m; }
+  return lo + (t - B[lo]) / (B[lo + 1] - B[lo]);
+}
+function tempoDoBeat(b, B) {
+  B = B || batidas(); const n = B.length;
+  if (b <= 0) return B[0] + b * (B[1] - B[0]);
+  if (b >= n - 1) return B[n - 1] + (b - n + 1) * (B[n - 1] - B[n - 2]);
+  const i = Math.floor(b); return B[i] + (b - i) * (B[i + 1] - B[i]);
+}
+function grudar(t) { if (!S.grade || !S.grudar || !batidas()) return t; return tempoDoBeat(Math.round(beatDoTempo(t))); }
+function inicioDeCompasso(i) { const g = S.grade, pc = g.porCompasso, r = i - (g.primeiroCompasso || 0); return ((r % pc) + pc) % pc === 0; }
+function compassoDoBeat(i) { const g = S.grade; return Math.floor((i - (g.primeiroCompasso || 0)) / g.porCompasso) + 1; }
+function bpmDaGrade() { const B = batidas(); if (!B) return 0; const d = B.slice(1).map((t, i) => t - B[i]).sort((a, b) => a - b); return 60 / d[d.length >> 1]; }
+function gradeDoMetronomo(info, dur) {
+  const per = 60 / info.bpm, tempos = [];
+  for (let t = info.primeiro; t < dur + per; t += per) tempos.push(Math.round(t * 1000) / 1000);
+  return {tempos, porCompasso: info.porCompasso, origem: "metronomo", bpm: info.bpm, desloc: 0, primeiroCompasso: info.contagem * info.porCompasso};
+}
+function envelopeAtaques(y) {
+  const H = 256, n = Math.floor(y.length / H), e = new Float32Array(n), o = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let s2 = 0; for (let j = i * H; j < i * H + H; j++) s2 += y[j] * y[j]; e[i] = Math.log(1e-6 + s2 / H); }
+  for (let i = 1; i < n; i++) o[i] = Math.max(0, e[i] - e[i - 1]);
+  return {o, fps: SR / H};
+}
+/* acerta o atraso entre o clique ouvido e o som gravado procurando onde os ataques do violino mais coincidem com os tempos */
+function autoAlinhar(env) {
+  const g = S.grade; if (!g || !env) return;
+  const per = 60 / (g.bpm || bpmDaGrade()), R = Math.min(0.12, 0.25 * per), ini = g.tempos[Math.max(0, g.primeiroCompasso || 0)] || g.tempos[0];
+  let best = 0, bs = -1;
+  for (let d = -R; d <= R + 1e-9; d += 0.005) {
+    let sc = 0;
+    for (const t of g.tempos) {
+      if (t < ini) continue;
+      const x = (t + d) * env.fps - 0.5, i = Math.floor(x), fr = x - i;
+      if (i < 1 || i >= env.o.length - 2) continue;
+      sc += env.o[i] * (1 - fr) + env.o[i + 1] * fr;
+    }
+    if (sc > bs) { bs = sc; best = d; }
+  }
+  g.desloc = Math.round(best * 1000) / 1000;
+}
 
 /* ============================================================
    Linha do tempo
@@ -784,8 +1133,22 @@ function desenhar() {
   });
   if (S.loop && S.sel && S.verses[S.sel.v]) { const b = bordas(S.sel.v); ctx.fillStyle = COR.indigo; ctx.fillRect(tx(b[0]), H - 4, tx(b[b.length-1]) - tx(b[0]), 4); }
   ctx.fillStyle = COR.muted; ctx.font = "10px " + MONO; ctx.strokeStyle = COR.line; ctx.lineWidth = 1;
-  const pr = [0.5, 1, 2, 5, 10, 15, 30, 60].find(p => p * S.view.pps >= 60) || 60;
-  for (let t = Math.ceil(t0 / pr) * pr; t <= t1; t += pr) { const x = Math.round(tx(t)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 12); ctx.lineTo(x, Y.acordes); ctx.stroke(); ctx.fillText(fmt(t).replace(/\.0$/, ""), x + 3, 10); }
+  const BT = batidas();
+  if (BT) {
+    const espPx = (60 / Math.max(20, bpmDaGrade())) * S.view.pps, pc = S.grade.porCompasso;
+    let ultimoRot = -1e9;
+    for (let i = 0; i < BT.length; i++) {
+      const x = Math.round(tx(BT[i])) + 0.5; if (x < -2 || x > W + 2) continue;
+      const ic = inicioDeCompasso(i), nc = compassoDoBeat(i);
+      if (!ic && espPx < 7) continue;
+      ctx.strokeStyle = ic ? COR.muted : COR.line; ctx.globalAlpha = ic ? 0.5 : 0.8;
+      ctx.beginPath(); ctx.moveTo(x, ic ? 12 : Y.acordes + 24); ctx.lineTo(x, H); ctx.stroke(); ctx.globalAlpha = 1;
+      if (ic && nc >= 1 && x - ultimoRot > 26) { ctx.fillStyle = COR.muted; ctx.fillText("c" + nc, x + 3, 10); ultimoRot = x; }
+    }
+  } else {
+    const pr = [0.5, 1, 2, 5, 10, 15, 30, 60].find(p => p * S.view.pps >= 60) || 60;
+    for (let t = Math.ceil(t0 / pr) * pr; t <= t1; t += pr) { const x = Math.round(tx(t)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 12); ctx.lineTo(x, Y.acordes); ctx.stroke(); ctx.fillText(fmt(t).replace(/\.0$/, ""), x + 3, 10); }
+  }
   const mid = (Y.onda + Y.notas) / 2, amp = (Y.notas - Y.onda) / 2 - 4;
   ctx.fillStyle = COR.wave;
   if (ondaMax) for (let x = 0; x < W; x++) {
@@ -822,7 +1185,7 @@ function desenhar() {
       if (ac && x1 - x0 > 14) {
         const ant = k > 0 ? acordeFinal(v, k - 1) : null;
         const txt = ant && chordKey(ant) === chordKey(ac) ? "–" : nomeAcorde(ac);
-        ctx.fillStyle = V.parts[k].chord ? COR.red : COR.ink; ctx.font = "600 12px " + MONO;
+        ctx.fillStyle = fixo(V.parts[k]) ? COR.red : COR.ink; ctx.font = "600 12px " + MONO;
         ctx.save(); ctx.beginPath(); ctx.rect(x0 + 2, Y.acordes, x1 - x0 - 4, 24); ctx.clip(); ctx.fillText(txt, x0 + 6, Y.acordes + 17); ctx.restore();
       }
     }
@@ -890,7 +1253,7 @@ cv.addEventListener("pointermove", e => {
   const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   if (!arrasto) { cv.style.cursor = (y > Y.acordes - 6 && linhaPerto(x)) ? "ew-resize" : (y < Y.acordes ? "grab" : "crosshair"); return; }
   if (arrasto.pan) { S.view.t0 = limitarT0(arrasto.t0 - (x - arrasto.x0) / S.view.pps); desenhar(); return; }
-  arrasto.moveu = true; moverLinha(arrasto.L, xt(x)); desenhar();
+  arrasto.moveu = true; moverLinha(arrasto.L, grudar(xt(x))); desenhar();
 });
 cv.addEventListener("pointerup", () => { if (arrasto && arrasto.moveu) mudouEstrutura(); arrasto = null; });
 cv.addEventListener("pointercancel", () => { arrasto = null; });
@@ -925,8 +1288,8 @@ function zoomEm(fator, x) {
   S.view.t0 = limitarT0(t - x / S.view.pps); desenhar();
 }
 $("zIn").onclick = () => zoomEm(1.5);
-$("addV").onclick = () => inserirVerso(tempoAtual());
-$("addC").onclick = () => inserirCorte(tempoAtual());
+$("addV").onclick = () => inserirVerso(grudar(tempoAtual()));
+$("addC").onclick = () => inserirCorte(grudar(tempoAtual()));
 $("delL").onclick = () => apagarLinha();
 $("zOut").onclick = () => zoomEm(1 / 1.5);
 $("zFit").onclick = () => { S.view.pps = ppsMin(); S.view.t0 = 0; desenhar(); };
@@ -939,8 +1302,10 @@ document.addEventListener("keydown", e => {
   const tag = (e.target.tagName || "").toLowerCase();
   if (["input", "select", "textarea"].includes(tag) && e.target.type !== "range") return;
   if (e.code === "Space") { e.preventDefault(); if (grav.rec && grav.rec.state === "recording") pararGravacao(); else alternarPlay(); }
-  else if (e.key === "v" || e.key === "V") inserirVerso(tempoAtual());
-  else if (e.key === "c" || e.key === "C") inserirCorte(tempoAtual());
+  else if (e.key === "v" || e.key === "V") inserirVerso(grudar(tempoAtual()));
+  else if (e.key === "c" || e.key === "C") inserirCorte(grudar(tempoAtual()));
+  else if (e.key === "t" || e.key === "T") { if (S.batendo) { e.preventDefault(); baterTempo(); } }
+  else if (e.key === "Escape") { if (!$("palco").hidden) fecharPalco(); }
   else if (e.key === "Delete" || e.key === "Backspace") { if (S.selLine) { e.preventDefault(); apagarLinha(); } }
   else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); passarParte(e.key === "ArrowRight" ? 1 : -1); }
 });
@@ -973,6 +1338,7 @@ const audio = {
     this.gK = this.ctx.createGain(); this.gB = this.ctx.createGain();
     const comp = this.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; comp.connect(this.ctx.destination);
     this.gK.connect(comp); this.gB.connect(comp); this.saida = comp;
+    this.gC = this.ctx.createGain(); this.gC.connect(this.ctx.destination);
     volumes();
   },
   ligarGravacao() {
@@ -1006,10 +1372,10 @@ const audio = {
     this.cortarAcomp(); clearInterval(this.timer);
     S.playing = false; iconePlay();
   },
-  novoAcomp() { this.acomp = this.ctx.createGain(); this.acomp.connect(this.gK); this.acompB = this.ctx.createGain(); this.acompB.connect(this.gB); },
+  novoAcomp() { this.acomp = this.ctx.createGain(); this.acomp.connect(this.gK); this.acompB = this.ctx.createGain(); this.acompB.connect(this.gB); this.acompC = this.ctx.createGain(); this.acompC.connect(this.gC); },
   cortarAcomp() {
     if (!this.ctx || !this.acomp) return;
-    for (const g of [this.acomp, this.acompB]) { g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015); setTimeout(() => g.disconnect(), 250); }
+    for (const g of [this.acomp, this.acompB, this.acompC]) { g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015); setTimeout(() => g.disconnect(), 250); }
     this.novoAcomp();
   },
   reagendar() {
@@ -1043,7 +1409,19 @@ function volumes() {
 ["mViol", "mBracsa", "mBogo"].forEach(id => $(id).addEventListener("click", () => { const b = $(id); b.classList.toggle("on"); b.setAttribute("aria-pressed", b.classList.contains("on")); volumes(); }));
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 /* síntese: arcada curta, ligada ou macia; pulso = 2ª nota dentro da mesma arcada */
+function somClique(ac, quando, forte, tipo, vol, destino) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  const madeira = tipo === "madeira";
+  o.type = madeira ? "triangle" : "square";
+  o.frequency.value = madeira ? (forte ? 1250 : 880) : (forte ? 1760 : 1180);
+  const dur = madeira ? 0.05 : 0.03;
+  g.gain.setValueAtTime(0.0001, quando);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.001, vol * (forte ? 0.5 : 0.3)), quando + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, quando + dur);
+  o.connect(g); g.connect(destino); o.start(quando); o.stop(quando + dur + 0.02);
+}
 function tocarEvento(ac, ev, quando, rate) {
+  if (ev.tipo === "clique") { somClique(ac, quando, ev.forte, "clique", 0.8, audio.acompC); return; }
   const d = ev.d / rate, bogo = ev.tipo === "bogo";
   const g = ac.createGain(), f = ac.createBiquadFilter();
   f.type = "lowpass"; f.frequency.value = bogo ? 700 : 2400; f.Q.value = 0.6;
@@ -1072,23 +1450,31 @@ function tocarEvento(ac, ev, quando, rate) {
     }
   }
 }
-const voicing = c => notasDe(c).map(pc => 55 + ((pc - 55) % 12 + 12) % 12).sort((a, b) => a - b).map(m => m > 71 ? m - 12 : m);
 const nBogo = pc => 36 + ((pc - 36) % 12 + 12) % 12;
 function estiloDe(P) { return P.style || S.estilo; }
 function gerarEventos() {
-  const ev = [];
+  const ev = [], B = batidas();
   S.verses.forEach((V, v) => {
     const b = bordas(v);
     for (let k = 0; k < V.n; k++) {
       const c = acordeFinal(v, k); if (!c) continue;
       const P = V.parts[k], est = estiloDe(P);
       if (est === "pausa" || !ESTILOS[est]) continue;
-      const a = b[k], D = b[k + 1] - a, nb = Math.max(1, P.beats || S.beats);
-      const pd = padrao(est, D, nb, P), ms = voicing(c);
-      for (const x of pd.k) ev.push({...x, t: a + x.t, tipo: "k", ms});
-      if (S.inst === "ambos") for (const x of pd.b) ev.push({...x, t: a + x.t, tipo: "bogo", m: nBogo(x.quinta ? (c.root + 7) % 12 : c.root)});
+      const a = b[k], z = b[k + 1];
+      let nb = 0, mapa = null;
+      if (B) {
+        const ba = beatDoTempo(a, B), bz = beatDoTempo(z, B), conta = Math.round(bz - ba);
+        if (conta >= 1) { nb = P.beats || conta; const f = (bz - ba) / nb; mapa = u => tempoDoBeat(ba + u * f, B); }
+      }
+      if (!nb) nb = Math.max(1, P.beats || S.beats);
+      if (!mapa) mapa = u => a + u * (z - a) / nb;
+      const pd = padrao(est, nb, nb, P), ms = vozBracsa(c);
+      const conv = x => { const t = mapa(x.t); return {...x, t, d: Math.max(0.05, mapa(x.t + x.d) - t)}; };
+      for (const x of pd.k) ev.push({...conv(x), tipo: "k", ms});
+      if (S.inst === "ambos") for (const x of pd.b) ev.push({...conv(x), tipo: "bogo", m: nBogo(x.quinta ? (c.root + 7) % 12 : c.root)});
     }
   });
+  if (B && S.cliqueRepro) B.forEach((t, i) => { if (t >= 0 && t <= S.dur) ev.push({t, d: 0.04, tipo: "clique", forte: inicioDeCompasso(i)}); });
   return ev.sort((x, y) => x.t - y.t);
 }
 
@@ -1096,7 +1482,7 @@ function gerarEventos() {
    Transporte
    ============================================================ */
 function iconePlay() { $("playIco").innerHTML = S.playing ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4l14 8-14 8z"/>'; $("playBtn").setAttribute("aria-label", S.playing ? "Pausar" : "Tocar"); }
-function pararUI() { audio.parar(); desenhar(); atualizarRelogio(); }
+function pararUI() { audio.parar(); if (S.batendo) terminarBatida(); desenhar(); atualizarRelogio(); atualizarTelinha(); }
 function alternarPlay() { if (!S.url) return; if (S.playing) pararUI(); else audio.tocar(); }
 const tempoAtual = () => audio.agora();
 $("playBtn").addEventListener("click", alternarPlay);
@@ -1116,7 +1502,13 @@ function laco() {
   const vis = cv.clientWidth / S.view.pps;
   if (t > S.view.t0 + vis * 0.85 || t < S.view.t0) S.view.t0 = limitarT0(t - vis * 0.15);
   const pe = parteEm(t), chave = pe ? pe.v + ":" + pe.p : null;
-  if (chave !== parteTocando) { parteTocando = chave; document.querySelectorAll(".cell.now").forEach(c => c.classList.remove("now")); if (pe) { const c = document.querySelector(`.cell[data-v="${pe.v}"][data-p="${pe.p}"]`); if (c) c.classList.add("now"); } }
+  if (chave !== parteTocando) {
+    parteTocando = chave;
+    document.querySelectorAll(".cell.now").forEach(c => c.classList.remove("now"));
+    if (pe) document.querySelectorAll(`.cell[data-v="${pe.v}"][data-p="${pe.p}"][data-ver="${S.versao}"]`).forEach(c => c.classList.add("now"));
+    atualizarTelinha();
+  }
+  atualizarPulsos();
   desenhar();
   requestAnimationFrame(laco);
 }
@@ -1187,30 +1579,59 @@ $("keySel").onchange = () => { const v = $("keySel").value; S.keyOverride = v ==
    Cifra e editor
    ============================================================ */
 const nomeCurto = est => est === "pausa" ? "pausa" : ESTILOS[est].curto;
+function celula(v, k, ver) {
+  const V = S.verses[v], c = acordeFinal(v, k, ver), ant = k > 0 ? acordeFinal(v, k - 1, ver) : null, sg = S.sugV[ver] && S.sugV[ver][v] && S.sugV[ver][v][k];
+  const rep = c && ant && chordKey(c) === chordKey(ant), cls = ["cell"];
+  if (rep) cls.push("rep");
+  if (fixo(V.parts[k], ver)) cls.push("fixed"); else if (sg && sg.conf !== null && sg.conf <= 0.02) cls.push("low");
+  if (S.sel && S.sel.v === v && S.sel.p === k && ver === S.versao) cls.push("sel");
+  const st = V.parts[k].style ? `<span class="st">${nomeCurto(V.parts[k].style)}</span>` : "";
+  return `<td><button class="${cls.join(" ")}" data-v="${v}" data-p="${k}" data-ver="${ver}" aria-label="Verso ${v + 1}, acorde ${k + 1}, versão ${VERSOES[ver].nome}: ${c ? nomeAcorde(c) : "sem acorde"}">${c ? (rep ? "–" : nomeAcorde(c)) : "·"}${st}</button></td>`;
+}
+function rotuloVerso(V, v) {
+  const sg = S.sug[v] && S.sug[v][0], par = sg && sg.parecidos.length ? `<br>≈ ${sg.parecidos.map(j => "V" + (j + 1)).join(", ")}` : "";
+  const loop = S.loop && S.sel && S.sel.v === v ? " ⟲" : "";
+  const comp = batidas() ? ` c${compassoDoBeat(Math.round(beatDoTempo(V.start)))}` : "";
+  return `<b>V${v + 1}${loop}</b> ${fmt(V.start)}${comp}${par}`;
+}
 function renderGrade() {
   const tb = $("grid");
-  if (!S.verses.length) { tb.innerHTML = '<tr><td class="hint">Ainda não há versos. Siga o passo 1 ou toque a música e aperte V em cada início de verso.</td></tr>'; $("txt").value = ""; return; }
+  document.querySelectorAll("#versoes button").forEach(b => b.classList.toggle("on", S.comparar ? b.dataset.ver === "comparar" : b.dataset.ver === S.versao));
+  $("verDesc").textContent = S.comparar ? "As três versões lado a lado (S, I, C). Toque num acorde para editar naquela versão." : VERSOES[S.versao].desc;
+  if (!S.verses.length) { tb.innerHTML = '<tr><td class="hint">Ainda não há versos. Siga o passo 1 ou toque a música e aperte V em cada início de verso.</td></tr>'; $("txt").value = ""; renderDigs(); atualizarTelinha(); return; }
   let html = "";
   S.verses.forEach((V, v) => {
-    const sg = S.sug[v] && S.sug[v][0], par = sg && sg.parecidos.length ? `<br>≈ ${sg.parecidos.map(j => "V" + (j + 1)).join(", ")}` : "";
-    const loop = S.loop && S.sel && S.sel.v === v ? " ⟲" : "";
-    html += `<tr><th><b>V${v + 1}${loop}</b> ${fmt(V.start)}${par}</th>`;
-    for (let k = 0; k < V.n; k++) {
-      const c = acordeFinal(v, k), ant = k > 0 ? acordeFinal(v, k - 1) : null, s = S.sug[v] && S.sug[v][k];
-      const rep = c && ant && chordKey(c) === chordKey(ant), cls = ["cell"];
-      if (rep) cls.push("rep");
-      if (V.parts[k].chord) cls.push("fixed"); else if (s && s.conf !== null && s.conf <= 0.02) cls.push("low");
-      if (S.sel && S.sel.v === v && S.sel.p === k) cls.push("sel");
-      const st = V.parts[k].style ? `<span class="st">${nomeCurto(V.parts[k].style)}</span>` : "";
-      html += `<td><button class="${cls.join(" ")}" data-v="${v}" data-p="${k}" aria-label="Verso ${v + 1}, acorde ${k + 1}: ${c ? nomeAcorde(c) : "sem acorde"}">${c ? (rep ? "–" : nomeAcorde(c)) : "·"}${st}</button></td>`;
+    if (!S.comparar) {
+      html += `<tr><th>${rotuloVerso(V, v)}</th>`;
+      for (let k = 0; k < V.n; k++) html += celula(v, k, S.versao);
+      html += "</tr>";
+    } else {
+      Object.keys(VERSOES).forEach((ver, i) => {
+        const cls = [i ? "sub" : "", ver === S.versao ? "ativa" : "", i === 2 ? "fimverso" : ""].join(" ");
+        html += `<tr class="${cls}"><th>${i === 0 ? rotuloVerso(V, v) : ""}<span class="vtag" title="${VERSOES[ver].nome}">${VERSOES[ver].tag}</span></th>`;
+        for (let k = 0; k < V.n; k++) html += celula(v, k, ver);
+        html += "</tr>";
+      });
     }
-    html += "</tr>";
   });
   tb.innerHTML = html;
-  $("txt").value = textoCifra();
+  $("txt").value = textoAtual();
+  renderDigs();
+  atualizarTelinha();
+}
+function acordesUsados(vers) {
+  const m = new Map();
+  for (const ver of vers) S.verses.forEach((V, v) => { for (let k = 0; k < V.n; k++) { const c = acordeFinal(v, k, ver); if (c && !m.has(chordKey(c))) m.set(chordKey(c), c); } });
+  return [...m.values()];
+}
+function renderDigs() {
+  const vers = S.comparar ? Object.keys(VERSOES) : [S.versao], usados = acordesUsados(vers);
+  $("digTit").textContent = `Digitações ${S.comparar ? "das três versões" : "da versão " + VERSOES[S.versao].nome} · brácsa de ${AFINACOES[S.cordas].rot}`;
+  $("digs").innerHTML = usados.length ? usados.map(c => `<div class="dig"><b>${nomeAcorde(c)}</b>${diagramaSVG(c)}<small>${digitacao(c).join("-")}</small></div>`).join("") : '<span class="hint">Os acordes aparecem aqui quando houver versos.</span>';
 }
 $("grid").addEventListener("click", e => {
   const c = e.target.closest(".cell"); if (!c) return;
+  if (c.dataset.ver && c.dataset.ver !== S.versao) { S.versao = c.dataset.ver; S.sug = S.sugV[S.versao]; audio.reagendar(); }
   S.sel = {v: +c.dataset.v, p: +c.dataset.p};
   const b = bordas(S.sel.v);
   if (!S.playing || !S.loop) audio.irPara(b[S.sel.p]);
@@ -1223,6 +1644,7 @@ function melodiaTrecho(a, b) {
   return out.slice(0, 16).join(" ") + (out.length > 16 ? " …" : "");
 }
 function renderEditor() {
+  atualizarTelinha();
   const ed = $("editor");
   if (!S.sel || !S.verses[S.sel.v] || S.sel.p >= S.verses[S.sel.v].n) { ed.hidden = true; return; }
   const {v, p} = S.sel, V = S.verses[v], P = V.parts[p], b = bordas(v), sg = S.sug[v] && S.sug[v][p], c = acordeFinal(v, p);
@@ -1234,18 +1656,18 @@ function renderEditor() {
   ed.innerHTML = `
     <div class="head"><strong>Verso ${v + 1} · acorde ${p + 1} de ${V.n}</strong><span class="mono hint">${fmt(b[p])} – ${fmt(b[p + 1])} · ${(b[p + 1] - b[p]).toFixed(2)} s</span></div>
     <div class="mel">Violino: ${melodiaTrecho(b[p], b[p + 1]) || "(sem notas)"}</div>
-    <div class="field"><span class="lbl">Sugestões · % das notas do violino dentro do acorde ${P.chord ? "" : '<span class="badge">automático</span>'}</span><div class="chips" id="chips">${chips}</div></div>
+    <div class="field"><span class="lbl">Versão ${VERSOES[S.versao].nome} · sugestões (% das notas do violino dentro do acorde) ${fixo(P) ? "" : '<span class="badge">automático</span>'}</span><div class="chips" id="chips">${chips}</div></div>
     <div class="row">
       <div class="field"><label for="edRoot">Fundamental</label><select id="edRoot">${raizOpts}</select></div>
       <div class="field"><label for="edType">Tipo</label><select id="edType">${tipoOpts}</select></div>
       <div class="field"><label for="edStyle">Estilo deste acorde</label><select id="edStyle">${estOpts}</select></div>
-      <div class="field"><label for="edBeats">Tempos</label><input id="edBeats" type="number" min="1" max="8" value="${P.beats || ""}" placeholder="${S.beats}"></div>
+      <div class="field"><label for="edBeats">Tempos</label><input id="edBeats" type="number" min="1" max="8" value="${P.beats || ""}" placeholder="${batidas() ? "auto" : S.beats}"></div>
     </div>
-    ${c ? `<div class="notes-line">Brácsa: <b>${grafia(c).join(" ")}</b>${S.inst === "ambos" ? ` &nbsp;·&nbsp; Bőgő: <b>${NOMES[c.root]}</b> (quinta ${NOMES[(c.root + 7) % 12]})` : ""}</div>` : ""}
+    ${c ? `<div class="dig-ed">${diagramaSVG(c)}<div class="txt"><span>Brácsa ${AFINACOES[S.cordas].rot}: <b>${digitacao(c).join("-")}</b></span><span>Notas: <b>${digNotas(c)}</b></span>${S.inst === "ambos" ? `<span>Bőgő: <b>${NOMES[c.root]}</b> (quinta ${NOMES[(c.root + 7) % 12]})</span>` : ""}</div></div>` : ""}
     <div class="row">
       <button id="edPlay">▶ Ouvir daqui</button>
       <button id="edAll" title="Mesmo acorde nesta posição em todos os versos com o mesmo número de acordes">Aplicar em todos os versos</button>
-      <button id="edAuto" ${P.chord || P.style ? "" : "disabled"}>Voltar ao automático</button>
+      <button id="edAuto" ${fixo(P) || P.style ? "" : "disabled"}>Voltar ao automático</button>
       <span class="spacer"></span>
       <button id="edPrev" aria-label="Acorde anterior">◀</button><button id="edNext" aria-label="Próximo acorde">▶</button>
     </div>
@@ -1254,14 +1676,14 @@ function renderEditor() {
       <button id="edMenos" aria-label="Uma parte a menos">−</button><span class="mono">${V.n}</span><button id="edMais" aria-label="Uma parte a mais">+</button>
       <button id="edIgualar" ${V.cuts ? "" : "disabled"}>Igualar partes</button>
     </div>`;
-  const fixar = c2 => { P.chord = c2; mudouAcordes(); };
+  const fixar = c2 => { P.fix = {...(P.fix || {}), [S.versao]: c2}; mudouAcordes(); };
   $("chips").onclick = e => { const ch = e.target.closest(".chip"); if (ch) fixar({root: +ch.dataset.root, type: ch.dataset.type}); };
   $("edRoot").onchange = () => fixar({root: +$("edRoot").value, type: $("edType").value});
   $("edType").onchange = () => fixar({root: +$("edRoot").value, type: $("edType").value});
   $("edStyle").onchange = () => { P.style = $("edStyle").value || null; mudouAcordes(); };
   $("edBeats").onchange = () => { const n = parseInt($("edBeats").value); P.beats = n > 0 ? Math.min(8, n) : null; mudouAcordes(); };
-  $("edAuto").onclick = () => { P.chord = null; P.style = null; P.beats = null; mudouAcordes(); };
-  $("edAll").onclick = () => { const cc = acordeFinal(v, p); S.verses.forEach(W => { if (W.n === V.n) { W.parts[p].chord = cc ? {...cc} : null; W.parts[p].style = P.style; } }); mudouAcordes(); setStatus(`${cc ? nomeAcorde(cc) : "Acorde"} aplicado na posição ${p + 1} de todos os versos com ${V.n} acordes.`); };
+  $("edAuto").onclick = () => { if (P.fix) delete P.fix[S.versao]; P.style = null; P.beats = null; mudouAcordes(); };
+  $("edAll").onclick = () => { const cc = acordeFinal(v, p); S.verses.forEach(W => { if (W.n === V.n) { W.parts[p].fix = {...(W.parts[p].fix || {}), [S.versao]: cc ? {...cc} : null}; W.parts[p].style = P.style; } }); mudouAcordes(); setStatus(`${cc ? nomeAcorde(cc) : "Acorde"} aplicado na posição ${p + 1} de todos os versos com ${V.n} acordes (versão ${VERSOES[S.versao].nome}).`); };
   $("edPlay").onclick = () => { if (S.playing) audio.parar(); audio.pos = b[p]; audio.tocar(); };
   $("edPrev").onclick = () => passarParte(-1);
   $("edNext").onclick = () => passarParte(1);
@@ -1270,51 +1692,73 @@ function renderEditor() {
   $("edIgualar").onclick = () => { V.cuts = null; mudouEstrutura(); };
 }
 function textoParam(est) { const E = ESTILOS[est]; return Object.entries(E.params).filter(([, p]) => p.fmt).map(([k, p]) => p.rot.toLowerCase() + ": " + p.fmt(valParam(est, k))).join(", "); }
-function textoCifra() {
-  if (!S.verses.length) return "";
+function cabecalhoTexto() {
   const {ton, modo} = tom(), L = [];
   L.push(S.nome || "Música");
-  L.push(`Tonalidade: ${PT[ton]} ${modo} (${NOMES[ton]}${modo === "maior" ? "" : "m"})`);
-  L.push(`Acompanhamento: ${S.inst === "ambos" ? "brácsa + bőgő" : "só brácsa"} · ${ESTILOS[S.estilo].nome}${textoParam(S.estilo) ? " (" + textoParam(S.estilo) + ")" : ""} · ${S.beats} tempo(s) por acorde`);
-  L.push("");
-  const usados = new Map();
-  const larg = Math.max(4, ...S.verses.flatMap((V, v) => V.parts.map((_, k) => { const c = acordeFinal(v, k); return c ? nomeAcorde(c).length + 1 : 2; })));
+  L.push(`Tonalidade: ${PT[ton]} ${modo} (${NOMES[ton]}${modo === "maior" ? "" : "m"}) · brácsa de ${AFINACOES[S.cordas].rot}`);
+  L.push(`Acompanhamento: ${S.inst === "ambos" ? "brácsa + bőgő" : "só brácsa"} · ${ESTILOS[S.estilo].nome}${textoParam(S.estilo) ? " (" + textoParam(S.estilo) + ")" : ""}`);
+  if (batidas()) L.push(`Tempos: ${Math.round(bpmDaGrade())} BPM, compasso de ${S.grade.porCompasso}`);
+  return L;
+}
+function textoCifra(ver) {
+  if (!S.verses.length) return "";
+  ver = ver || S.versao;
+  const L = [`VERSÃO ${VERSOES[ver].nome.toUpperCase()}: ${VERSOES[ver].desc}`];
+  const larg = Math.max(4, ...S.verses.flatMap((V, v) => V.parts.map((_, k) => { const c = acordeFinal(v, k, ver); return c ? nomeAcorde(c).length + 1 : 2; })));
   S.verses.forEach((V, v) => {
     const cel = [];
     for (let k = 0; k < V.n; k++) {
-      const c = acordeFinal(v, k), ant = k > 0 ? acordeFinal(v, k - 1) : null;
-      if (c) usados.set(chordKey(c), c);
-      let s = !c ? "·" : (ant && chordKey(ant) === chordKey(c) ? "-" : nomeAcorde(c));
-      if (V.parts[k].style) s += "(" + nomeCurto(V.parts[k].style) + ")";
-      cel.push(s.padEnd(larg));
+      const c = acordeFinal(v, k, ver), ant = k > 0 ? acordeFinal(v, k - 1, ver) : null;
+      let s2 = !c ? "·" : (ant && chordKey(ant) === chordKey(c) ? "-" : nomeAcorde(c));
+      if (V.parts[k].style) s2 += "(" + nomeCurto(V.parts[k].style) + ")";
+      cel.push(s2.padEnd(larg));
     }
-    L.push(`V${String(v + 1).padEnd(2)} ${fmt(V.start).padStart(7)} | ${cel.join(" | ")} |`);
+    const comp = batidas() ? (" c" + compassoDoBeat(Math.round(beatDoTempo(V.start)))).padEnd(5) : "";
+    L.push(`V${String(v + 1).padEnd(2)} ${fmt(V.start).padStart(7)}${comp} | ${cel.join(" | ")} |`);
   });
-  L.push("('-' = repete o acorde anterior)", "", "Acordes usados:");
-  for (const c of usados.values()) L.push(`  ${nomeAcorde(c).padEnd(5)} brácsa: ${grafia(c).join(" ").padEnd(13)}` + (S.inst === "ambos" ? ` bőgő: ${NOMES[c.root]} (quinta ${NOMES[(c.root + 7) % 12]})` : ""));
   return L.join("\n");
+}
+function textoDigitacoes(vers) {
+  const af = AFINACOES[S.cordas], L = [`Digitações (brácsa de ${af.rot}; casa em cada corda ${af.nomes.join("-")}, 0 = solta):`];
+  for (const c of acordesUsados(vers)) L.push(`  ${nomeAcorde(c).padEnd(5)} ${digitacao(c).join("-").padEnd(9)} notas ${digNotas(c).padEnd(10)}` + (S.inst === "ambos" ? ` bőgő: ${NOMES[c.root]} (quinta ${NOMES[(c.root + 7) % 12]})` : ""));
+  return L.join("\n");
+}
+function textoAtual() {
+  if (!S.verses.length) return "";
+  const vers = S.comparar ? Object.keys(VERSOES) : [S.versao];
+  return [cabecalhoTexto().join("\n"), ...vers.map(v => textoCifra(v)), "('-' = repete o acorde anterior)", textoDigitacoes(vers)].join("\n\n");
 }
 
 /* ============================================================
    Mudanças, salvar, abrir
    ============================================================ */
-function sincronizarCampos() { if (S.verses.length) { $("s1").value = fmt(S.verses[0].start); if (S.verses[1]) $("s2").value = fmt(S.verses[1].start); $("sEnd").value = fmt(S.end); } }
+function sincronizarCampos() { if (S.verses.length) { $("s1").value = fmt3(S.verses[0].start); if (S.verses[1]) $("s2").value = fmt3(S.verses[1].start); $("sEnd").value = fmt3(S.end); } }
 function mudouEstrutura() { calcular(); audio.reagendar(); sincronizarCampos(); renderGrade(); renderEditor(); desenhar(); guardar(); }
 function mudouAcordes() { calcular(); audio.reagendar(); renderGrade(); renderEditor(); desenhar(); guardar(); }
 let tLeve = null;
 function mudouAcordesLeve() { clearTimeout(tLeve); tLeve = setTimeout(() => { audio.reagendar(); renderGrade(); if (S.sel) renderEditor(); guardar(); }, 120); }
 function projeto() {
-  return {app: "cifrador-bracsa", versao: 2, arquivo: S.nome, duracao: S.dur, fim: S.end, nParts: S.nParts,
+  const g = S.grade;
+  return {app: "cifrador-bracsa", versao: 3, arquivo: S.nome, duracao: S.dur, fim: S.end, nParts: S.nParts,
     estilo: S.estilo, params: S.params, tempos: S.beats, instrumentos: S.inst, tonalidade: S.keyOverride,
-    versos: S.verses.map(V => ({inicio: V.start, partes: V.n, cortes: V.cuts, acordes: V.parts.map(P => ({acorde: P.chord, estilo: P.style, tempos: P.beats || null}))}))};
+    cordas: S.cordas, versaoHarmonia: S.versao, comparar: S.comparar,
+    grade: g ? {tempos: g.tempos, porCompasso: g.porCompasso, origem: g.origem, bpm: g.bpm || null, desloc: g.desloc || 0, primeiroCompasso: g.primeiroCompasso || 0} : null,
+    versos: S.verses.map(V => ({inicio: V.start, partes: V.n, cortes: V.cuts, acordes: V.parts.map(P => ({fix: P.fix || {}, estilo: P.style, tempos: P.beats || null}))}))};
 }
 function carregarProjeto(o) {
   if (!o || !Array.isArray(o.versos)) throw new Error("formato");
   S.end = o.fim ?? S.dur; S.nParts = o.nParts || 8; S.beats = o.tempos || 2; S.keyOverride = o.tonalidade || null;
   S.estilo = ESTILOS[o.estilo] ? o.estilo : "ugros"; S.params = o.params || {}; S.inst = o.instrumentos === "bracsa" ? "bracsa" : "ambos";
-  S.verses = o.versos.map(x => ({start: x.inicio, n: x.partes, cuts: x.cortes || null, parts: x.acordes.map(a => ({chord: a.acorde || null, style: (a.estilo && (ESTILOS[a.estilo] || a.estilo === "pausa")) ? a.estilo : null, beats: a.tempos || null}))}));
+  S.cordas = o.cordas === 4 ? 4 : 3; S.versao = VERSOES[o.versaoHarmonia] ? o.versaoHarmonia : "inter"; S.comparar = !!o.comparar;
+  if (o.grade && Array.isArray(o.grade.tempos) && o.grade.tempos.length > 1) S.grade = {...o.grade};
+  const estOk = e => (e && (ESTILOS[e] || e === "pausa")) ? e : null;
+  S.verses = o.versos.map(x => ({start: x.inicio, n: x.partes, cuts: x.cortes || null, parts: x.acordes.map(a => {
+    let fix = a.fix || {};
+    if (!a.fix && a.acorde) fix = {simples: a.acorde, inter: a.acorde, completa: a.acorde};
+    return {fix, style: estOk(a.estilo), beats: a.tempos || null};
+  })}));
   $("nParts").value = S.nParts; $("beats").value = S.beats;
-  montarSeletorTom(); renderEstilos(); volumes();
+  montarSeletorTom(); renderEstilos(); renderCordas(); renderTempos(); volumes();
   S.sel = S.verses.length ? {v: 0, p: 0} : null;
   mudouEstrutura();
 }
@@ -1339,11 +1783,11 @@ async function salvarArquivo(nome, dados) {
   catch (e) { if (e && e.code === "declined") setStatus("Download cancelado."); else setStatus("Não deu para salvar o arquivo (" + (e && e.code || "erro") + ").", true); }
 }
 const base = () => (S.nome || "musica").replace(/\.[^.]+$/, "");
-$("saveTxt").onclick = () => salvarArquivo(base() + " - cifra.txt", textoCifra());
+$("saveTxt").onclick = () => salvarArquivo(base() + " - cifra.txt", textoAtual());
 $("saveProj").onclick = () => salvarArquivo(base() + " - projeto.json", JSON.stringify(projeto(), null, 1));
 $("copyTxt").onclick = async () => {
-  const t = textoCifra();
-  try { await navigator.clipboard.writeText(t); setStatus("Cifra copiada."); }
+  const t = textoAtual();
+  try { await navigator.clipboard.writeText(t); setStatus(S.comparar ? "Cifra das três versões copiada." : "Cifra da versão " + VERSOES[S.versao].nome + " copiada."); }
   catch (e) { document.querySelector("details").open = true; $("txt").focus(); $("txt").select(); setStatus("Selecionei a cifra no quadro de texto: copie com Ctrl+C."); }
 };
 $("projIn").onchange = async e => {
@@ -1351,10 +1795,204 @@ $("projIn").onchange = async e => {
   try { const o = JSON.parse(await f.text()); if (!S.dur) { setStatus("Abra a gravação primeiro, depois o projeto.", true); return; } carregarProjeto(o); setStatus("Projeto aberto: " + f.name); }
   catch (err) { setStatus("Esse arquivo não é um projeto do Cifrador.", true); }
 };
-$("s1Here").onclick = () => { $("s1").value = fmt(tempoAtual()); };
-$("s2Here").onclick = () => { $("s2").value = fmt(tempoAtual()); };
+$("s1Here").onclick = () => { $("s1").value = fmt3(grudar(tempoAtual())); };
+$("s2Here").onclick = () => { $("s2").value = fmt3(grudar(tempoAtual())); };
 $("endHere").onclick = () => { $("sEnd").value = fmt(tempoAtual()); if (S.verses.length) { S.end = Math.max(S.verses[S.verses.length - 1].start + 0.5, tempoAtual()); mudouEstrutura(); } };
 $("build").onclick = montarVersos;
+
+/* cordas do brácsa e versões da harmonia */
+function renderCordas() { $("cordas3").classList.toggle("on", S.cordas === 3); $("cordas4").classList.toggle("on", S.cordas === 4); }
+function mudarCordas(n) { S.cordas = n; renderCordas(); audio.reagendar(); renderGrade(); renderEditor(); guardar(); }
+$("cordas3").onclick = () => mudarCordas(3);
+$("cordas4").onclick = () => mudarCordas(4);
+$("versoes").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.ver === "comparar") S.comparar = !S.comparar;
+  else { S.versao = b.dataset.ver; S.comparar = false; }
+  S.sug = S.sugV[S.versao] || [];
+  audio.reagendar(); renderGrade(); renderEditor(); desenhar(); guardar();
+});
+
+/* ============================================================
+   Tempos: grade, bater os tempos
+   ============================================================ */
+function renderTempos() {
+  const g = S.grade, B = batidas();
+  $("gControles").hidden = !B; $("passoComp").hidden = !B;
+  if (!B) {
+    $("gradeInfo").textContent = "Sem grade de tempos. Grave com o metrônomo (em Gravar), bata os tempos ouvindo a gravação, ou crie a grade pelo BPM. Com a grade, as linhas grudam nos tempos e os versos podem ser montados por compassos.";
+  } else {
+    const orig = {metronomo: "Grade do metrônomo", batida: "Tempos batidos", bpm: "Grade pelo BPM"}[g.origem] || "Grade de tempos";
+    $("gradeInfo").textContent = `${orig}: ${B.length} tempos, ~${Math.round(bpmDaGrade())} BPM, compasso de ${g.porCompasso}.`;
+    $("gComp").value = String(g.porCompasso);
+    $("gDesloc").value = Math.round((g.desloc || 0) * 1000); $("gDeslocV").textContent = Math.round((g.desloc || 0) * 1000) + " ms";
+  }
+  $("gGrudar").checked = S.grudar; $("gClique").checked = S.cliqueRepro;
+}
+function mudouGrade() { renderTempos(); audio.reagendar(); renderGrade(); renderEditor(); desenhar(); guardar(); }
+let taps = [];
+$("tapModo").onclick = () => { if (S.batendo) terminarBatida(); else iniciarBatida(); };
+function iniciarBatida() {
+  if (!S.url) return;
+  S.batendo = true; taps = [];
+  $("tapModo").textContent = "Terminar"; $("tapModo").classList.add("on"); $("tapBtn").hidden = false; $("tapConta").textContent = "";
+  setStatus("Toque em Tempo (ou na tecla T) em cada tempo da música. Diminua a velocidade se ficar difícil. Clique em Terminar no fim.");
+  if (!S.playing) audio.tocar();
+}
+function baterTempo() {
+  if (!S.batendo || !S.playing) return;
+  taps.push(el.currentTime);
+  $("tapConta").textContent = taps.length + " tempos";
+  const b = $("tapBtn"); b.classList.add("pisca"); setTimeout(() => b.classList.remove("pisca"), 90);
+}
+$("tapBtn").addEventListener("pointerdown", e => { e.preventDefault(); baterTempo(); });
+function terminarBatida() {
+  if (!S.batendo) return;
+  S.batendo = false;
+  $("tapModo").textContent = "Bater os tempos"; $("tapModo").classList.remove("on"); $("tapBtn").hidden = true;
+  const t = taps.slice().sort((a, b) => a - b).filter((x, i, a) => i === 0 || x - a[i - 1] > 0.12);
+  if (t.length < 4) { setStatus("Poucos tempos batidos: são precisos pelo menos 4.", true); $("tapConta").textContent = ""; return; }
+  S.grade = {tempos: t.map(x => Math.round(x * 1000) / 1000), porCompasso: +$("gComp").value || 2, origem: "batida", desloc: 0, primeiroCompasso: 0};
+  setStatus(`${t.length} tempos batidos viraram a grade. Se o compasso 1 não for o primeiro tempo batido, use Compasso 1 aqui.`);
+  mudouGrade();
+}
+$("gIniAqui").onclick = () => { $("gIni").value = fmt3(tempoAtual()); };
+$("gCriar").onclick = () => {
+  const bpm = +$("gBpm").value, ini = parseT($("gIni").value);
+  if (!(bpm >= 30 && bpm <= 260)) { setStatus("Informe um BPM entre 30 e 260.", true); return; }
+  if (ini === null) { setStatus("Marque onde cai o 1º tempo (botão Aqui).", true); return; }
+  const per = 60 / bpm, tempos = [];
+  let t = ini; while (t - per >= 0) t -= per;
+  for (; t < S.dur + per; t += per) tempos.push(Math.round(t * 1000) / 1000);
+  S.grade = {tempos, porCompasso: +$("gComp").value || 2, origem: "bpm", bpm, desloc: 0, primeiroCompasso: Math.round((ini - tempos[0]) / per)};
+  $("gCriarBox").open = false;
+  mudouGrade();
+};
+$("gComp").onchange = () => { if (S.grade) { S.grade.porCompasso = +$("gComp").value; mudouGrade(); } };
+$("gComp1").onclick = () => { if (!batidas()) return; S.grade.primeiroCompasso = Math.round(beatDoTempo(tempoAtual())); mudouGrade(); };
+$("gDesloc").oninput = () => { if (!S.grade) return; S.grade.desloc = +$("gDesloc").value / 1000; $("gDeslocV").textContent = $("gDesloc").value + " ms"; desenhar(); clearTimeout(tLeve); tLeve = setTimeout(() => { audio.reagendar(); guardar(); }, 150); };
+$("gGrudar").onchange = () => { S.grudar = $("gGrudar").checked; };
+$("gClique").onchange = () => { S.cliqueRepro = $("gClique").checked; audio.reagendar(); };
+$("gLimpar").onclick = () => {
+  const b = $("gLimpar");
+  if (!b.dataset.confirma) { b.dataset.confirma = "1"; b.textContent = "Confirmar: apagar grade"; setTimeout(() => { delete b.dataset.confirma; b.textContent = "Apagar grade"; }, 3000); return; }
+  delete b.dataset.confirma; b.textContent = "Apagar grade"; S.grade = null; mudouGrade();
+};
+
+/* ============================================================
+   Telinha do acorde atual e tela cheia
+   ============================================================ */
+function parteAtual() {
+  if (!S.verses.length) return null;
+  if (!S.playing && S.sel && S.verses[S.sel.v] && S.sel.p < S.verses[S.sel.v].n) return S.sel;
+  return parteEm(tempoAtual());
+}
+function proximoAcorde(pe) {
+  const atual = acordeFinal(pe.v, pe.p);
+  for (let v = pe.v; v < S.verses.length; v++) for (let k = v === pe.v ? pe.p + 1 : 0; k < S.verses[v].n; k++) {
+    const c = acordeFinal(v, k); if (c && (!atual || chordKey(c) !== chordKey(atual))) return {c, v, p: k};
+  }
+  return null;
+}
+function guardarTelinha() { try { localStorage.setItem("cifrador-telinha", S.telinha); } catch (e) {} }
+try { S.telinha = localStorage.getItem("cifrador-telinha") || "aberta"; } catch (e) {}
+function atualizarTelinha() {
+  const tem = S.verses.length > 0 && !!S.an;
+  $("telinha").hidden = !tem || S.telinha !== "aberta";
+  $("tlPill").hidden = !tem || S.telinha === "aberta";
+  if (!tem) return;
+  const pe = parteAtual(), c = pe ? acordeFinal(pe.v, pe.p) : null, nx = pe ? proximoAcorde(pe) : null;
+  const nome = c ? nomeAcorde(c) : "–", prox = nx ? nomeAcorde(nx.c) : "–";
+  $("tlNome").textContent = nome; $("tlDiag").innerHTML = c ? diagramaSVG(c) : "";
+  $("tlDig").textContent = c ? digitacao(c).join("-") : "";
+  $("tlProx").textContent = prox; $("tlProxDiag").innerHTML = nx ? diagramaSVG(nx.c) : "";
+  $("tlPill").textContent = nome + " ▸ " + prox;
+  if (!$("palco").hidden) {
+    $("pcNome").textContent = nome; $("pcDiag").innerHTML = c ? diagramaSVG(c) : "";
+    $("pcDig").textContent = c ? `${AFINACOES[S.cordas].nomes.join("-")}: ${digitacao(c).join("-")} · ${digNotas(c)}` : "";
+    $("pcProx").textContent = prox; $("pcProxDiag").innerHTML = nx ? diagramaSVG(nx.c) : "";
+    $("pcInfo").innerHTML = pe ? `<b>Verso ${pe.v + 1}</b> · acorde ${pe.p + 1} de ${S.verses[pe.v].n} · ${VERSOES[S.versao].nome}` : "";
+    $("pcPlay").textContent = S.playing ? "Pausar" : "Tocar";
+  }
+}
+let pulsoAnt = null;
+function atualizarPulsos() {
+  const box = $("pcPulsos"), B = batidas();
+  if ($("palco").hidden || !B) { if (box.innerHTML) box.innerHTML = ""; pulsoAnt = null; return; }
+  const pc = S.grade.porCompasso, i = Math.floor(beatDoTempo(tempoAtual(), B) + 1e-6);
+  const r = (((i - (S.grade.primeiroCompasso || 0)) % pc) + pc) % pc;
+  if (pulsoAnt === r && box.children.length === pc) return;
+  pulsoAnt = r;
+  box.innerHTML = Array.from({length: pc}, (_, k) => `<i class="${k === r ? "on" : ""}${k === 0 ? " forte" : ""}"></i>`).join("");
+}
+$("tlMin").onclick = () => { S.telinha = "min"; guardarTelinha(); atualizarTelinha(); };
+$("tlPill").onclick = () => { S.telinha = "aberta"; guardarTelinha(); atualizarTelinha(); };
+$("tlGrande").onclick = () => abrirPalco();
+function abrirPalco() {
+  $("palco").hidden = false; document.body.style.overflow = "hidden";
+  try { const r = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+  atualizarTelinha(); atualizarPulsos();
+}
+function fecharPalco() {
+  $("palco").hidden = true; document.body.style.overflow = "";
+  try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) {}
+}
+$("pcFechar").onclick = fecharPalco;
+$("pcPlay").onclick = () => { alternarPlay(); setTimeout(atualizarTelinha, 60); };
+
+/* ============================================================
+   Metrônomo
+   ============================================================ */
+const metro = {
+  timer: null, prox: 0, idx: 0, rodando: false, bpm: 100, comp: 2, cont: 1, som: "clique", vol: 0.7, gravando: false,
+  ler() { this.bpm = Math.max(30, Math.min(260, +$("mBpm").value || 100)); this.comp = +$("mComp").value || 2; this.cont = +$("mCont").value || 0; this.som = $("mSom").value; this.vol = +$("mVol").value; },
+  iniciar(quando, gravando) {
+    audio.garantir(); this.ler(); this.idx = 0; this.prox = quando; this.rodando = true; this.gravando = !!gravando;
+    clearInterval(this.timer); this.timer = setInterval(() => this.agendar(), 25); this.agendar();
+    $("mTeste").textContent = gravando ? "Ouvir" : "Parar"; $("mTeste").classList.toggle("on", !gravando);
+  },
+  parar() { this.rodando = false; clearInterval(this.timer); this.luz(-1); $("mCont2").textContent = ""; $("mTeste").textContent = "Ouvir"; $("mTeste").classList.remove("on"); },
+  agendar() {
+    const c = audio.ctx;
+    while (this.rodando && this.prox < c.currentTime + 0.12) {
+      const forte = this.idx % this.comp === 0;
+      if (this.som !== "visual") somClique(c, this.prox, forte, this.som, this.vol, c.destination);
+      const i = this.idx, atraso = Math.max(0, (this.prox - c.currentTime + (c.outputLatency || 0)) * 1000);
+      setTimeout(() => { if (this.rodando) this.luz(i); }, atraso);
+      this.idx++; this.prox += 60 / this.bpm;
+    }
+  },
+  luz(i) {
+    const box = $("mLuzes");
+    if (box.children.length !== this.comp) box.innerHTML = Array.from({length: this.comp}, () => '<span class="luz"></span>').join("");
+    [...box.children].forEach((l, k) => { l.classList.toggle("on", i >= 0 && k === i % this.comp); l.classList.toggle("forte", k === 0); });
+    if (i < 0) return;
+    const nCont = this.gravando ? this.cont * this.comp : 0;
+    $("mCont2").textContent = i < nCont ? "Contagem: " + (nCont - i) : (this.gravando ? "Compasso " + (Math.floor((i - nCont) / this.comp) + 1) : "");
+  },
+};
+function guardarMetro() { try { localStorage.setItem("cifrador-metro", JSON.stringify({bpm: $("mBpm").value, comp: $("mComp").value, cont: $("mCont").value, som: $("mSom").value, vol: $("mVol").value, on: $("mOn").checked})); } catch (e) {} }
+try { const m = JSON.parse(localStorage.getItem("cifrador-metro") || "null"); if (m) { $("mBpm").value = m.bpm; $("mBpmR").value = m.bpm; $("mComp").value = m.comp; $("mCont").value = m.cont; $("mSom").value = m.som; $("mVol").value = m.vol; $("mOn").checked = m.on !== false; } } catch (e) {}
+function setBpm(v) { v = Math.max(30, Math.min(260, Math.round(+v || 100))); $("mBpm").value = v; $("mBpmR").value = v; metro.bpm = v; guardarMetro(); }
+$("mBpm").onchange = () => setBpm($("mBpm").value);
+$("mBpmR").oninput = () => setBpm($("mBpmR").value);
+$("mMenos").onclick = () => setBpm(+$("mBpm").value - 2);
+$("mMais").onclick = () => setBpm(+$("mBpm").value + 2);
+["mComp", "mCont", "mSom", "mVol", "mOn"].forEach(id => $(id).addEventListener("change", () => { metro.ler(); guardarMetro(); }));
+$("mVol").addEventListener("input", () => { metro.vol = +$("mVol").value; });
+let tapsBpm = [];
+$("mTap").addEventListener("pointerdown", () => {
+  const t = performance.now() / 1000;
+  if (tapsBpm.length && t - tapsBpm[tapsBpm.length - 1] > 2) tapsBpm = [];
+  tapsBpm.push(t); if (tapsBpm.length > 8) tapsBpm.shift();
+  if (tapsBpm.length >= 3) { const d = (tapsBpm[tapsBpm.length - 1] - tapsBpm[0]) / (tapsBpm.length - 1); setBpm(60 / d); }
+});
+$("mTeste").onclick = async () => {
+  if (grav.rec && grav.rec.state === "recording") return;
+  if (metro.rodando) { metro.parar(); return; }
+  audio.garantir(); if (audio.ctx.state === "suspended") await audio.ctx.resume();
+  metro.iniciar(audio.ctx.currentTime + 0.08, false);
+};
 
 /* ============================================================
    Gravar pelo microfone
@@ -1402,18 +2040,27 @@ async function comecarGravacao() {
   }
   avisoRec("");
   pararUI();
+  audio.garantir(); if (audio.ctx.state === "suspended") await audio.ctx.resume();
+  metro.parar(); grav.metroInfo = null;
   grav.mime = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || "";
   try { grav.rec = new MediaRecorder(grav.stream, grav.mime ? {mimeType: grav.mime, audioBitsPerSecond: 128000} : undefined); }
   catch (e) { grav.rec = new MediaRecorder(grav.stream); }
   grav.pedacos = [];
   grav.rec.ondataavailable = e => { if (e.data && e.data.size) grav.pedacos.push(e.data); };
   grav.rec.onstop = gravacaoTerminou;
+  if ($("mOn").checked) {
+    grav.rec.onstart = () => {
+      const c = audio.ctx, c0 = c.currentTime, c1 = c0 + 0.35;
+      metro.iniciar(c1, true);
+      // momento do 1º clique na gravação: espera + atraso de saída do som
+      grav.metroInfo = {bpm: metro.bpm, porCompasso: metro.comp, contagem: metro.cont, primeiro: (c1 - c0) + (c.outputLatency || 0) + (c.baseLatency || 0)};
+    };
+  }
   grav.rec.start(250);
   grav.inicio = performance.now();
   $("recBtn").classList.add("on"); $("recBtn").setAttribute("aria-label", "Parar a gravação");
   $("recDica").textContent = "Gravando… toque de novo no botão para parar.";
   // medidor de nível
-  audio.garantir(); if (audio.ctx.state === "suspended") audio.ctx.resume();
   grav.fonte = audio.ctx.createMediaStreamSource(grav.stream);
   grav.analisador = audio.ctx.createAnalyser(); grav.analisador.fftSize = 1024;
   grav.fonte.connect(grav.analisador);
@@ -1439,6 +2086,7 @@ async function comecarGravacao() {
 function pararGravacao() { if (grav.rec && grav.rec.state === "recording") grav.rec.stop(); }
 async function gravacaoTerminou() {
   cancelAnimationFrame(grav.raf);
+  metro.parar();
   try { grav.fonte.disconnect(); } catch (e) {}
   grav.stream.getTracks().forEach(t => t.stop());
   $("recBtn").classList.remove("on"); $("recBtn").setAttribute("aria-label", "Começar a gravar");
@@ -1451,7 +2099,7 @@ async function gravacaoTerminou() {
   if (blob.size < 2000 || dur < 1) { avisoRec("A gravação ficou curta demais. Tente de novo."); return; }
   const agora = new Date(), id = agora.getTime();
   const nome = "Gravação " + agora.toLocaleDateString("pt-BR") + " " + agora.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
-  const g = {id, nome, dur, tipo, blob};
+  const g = {id, nome, dur, tipo, blob, grade: grav.metroInfo || null};
   await banco.salvar(g);
   listarTakes();
   analisarTake(g);
@@ -1459,13 +2107,13 @@ async function gravacaoTerminou() {
 const extDe = tipo => tipo.includes("mp4") || tipo.includes("aac") ? "m4a" : tipo.includes("ogg") ? "ogg" : "webm";
 async function analisarTake(g) {
   const bytes = await g.blob.arrayBuffer();
-  await abrirAudio(bytes, g.nome + "." + extDe(g.tipo), g.tipo, false);
+  await abrirAudio(bytes, g.nome + "." + extDe(g.tipo), g.tipo, false, g.grade || null);
   window.scrollTo({top: document.querySelector(".transport").offsetTop - 10, behavior: "smooth"});
 }
 async function listarTakes() {
   const lista = await banco.listar(), box = $("takes");
   if (!lista.length) { box.innerHTML = '<div class="hint">Nenhuma gravação ainda.</div>'; return; }
-  box.innerHTML = lista.map(g => `<div class="take" data-id="${g.id}"><span class="nm">${g.nome}</span><span class="info">${fmt(g.dur)}</span><span class="spacer"></span><button data-a="analisar" class="primary">Analisar</button><button data-a="salvar">Salvar arquivo</button><button data-a="apagar" class="ghost">Apagar</button></div>`).join("");
+  box.innerHTML = lista.map(g => `<div class="take" data-id="${g.id}"><span class="nm">${g.nome}</span><span class="info">${fmt(g.dur)}${g.grade ? ` · ♩ ${g.grade.bpm} BPM` : ""}</span><span class="spacer"></span><button data-a="analisar" class="primary">Analisar</button><button data-a="salvar">Salvar arquivo</button><button data-a="apagar" class="ghost">Apagar</button></div>`).join("");
 }
 $("takes").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -1481,7 +2129,7 @@ $("takes").addEventListener("click", async e => {
 /* ============================================================
    Abrir gravação
    ============================================================ */
-async function abrirAudio(bytes, nome, tipoMime, exemplo) {
+async function abrirAudio(bytes, nome, tipoMime, exemplo, gradeInfo) {
   pararUI();
   $("progWrap").hidden = false; $("prog").style.width = "0%";
   $("meta").textContent = "Lendo " + nome + "…";
@@ -1500,16 +2148,24 @@ async function abrirAudio(bytes, nome, tipoMime, exemplo) {
   let pk = 0; for (let i = 0; i < y.length; i++) pk = Math.max(pk, Math.abs(y[i]));
   if (pk > 0) for (let i = 0; i < y.length; i++) y[i] /= pk;
   prepararOnda(y);
-  S.verses = []; S.sug = []; S.sel = null; S.selLine = null; S.keyOverride = null; S.end = S.dur;
-  audio.pos = 0; S.view.pps = ppsMin(); S.view.t0 = 0; desenhar();
+  S.verses = []; S.sug = []; S.sugV = {simples: [], inter: [], completa: []}; S.sel = null; S.selLine = null; S.keyOverride = null; S.end = S.dur;
+  S.grade = null; if (S.batendo) terminarBatida();
+  audio.pos = 0; S.view.pps = ppsMin(); S.view.t0 = 0; atualizarRelogio(); desenhar();
   $("meta").textContent = "Ouvindo as notas do violino…";
   S.an = await analisar(y, p => { $("prog").style.width = Math.round(p * 100) + "%"; });
   estimarTom(); montarSeletorTom();
+  if (gradeInfo) { S.grade = gradeDoMetronomo(gradeInfo, S.dur); autoAlinhar(envelopeAtaques(y)); }
+  renderTempos();
   $("progWrap").hidden = true;
   $("meta").innerHTML = `<b>${nome.replace(/</g, "&lt;")}</b> · ${fmt(S.dur)} · afinação Lá = ${S.an.ref.toFixed(0)} Hz` + (exemplo ? ` · <span class="badge">exemplo</span>` : "");
   setStatus("");
   if (recuperar()) setStatus("Retomei as marcações que você tinha feito nesta gravação.");
   else if (exemplo) { carregarProjeto(EXEMPLO); setStatus("Exemplo: sua gravação (música 2, de 1:11 a 1:59), com 4 versos de 8 acordes. Abra outra gravação quando quiser."); }
+  else if (S.grade) {
+    const t1 = tempoDoBeat(S.grade.primeiroCompasso);
+    $("s1").value = fmt3(t1); $("s2").value = ""; $("nComp").value = ""; $("sEnd").value = fmt3(S.dur); mudouEstrutura();
+    setStatus(`Gravação com metrônomo (${S.grade.bpm} BPM): o compasso 1 começa em ${fmt(t1)}. Confira o início do 1º verso, diga quantos compassos tem cada verso e clique em Montar versos.`);
+  }
   else { $("s1").value = ""; $("s2").value = ""; $("sEnd").value = fmt(S.dur); mudouEstrutura(); setStatus("Toque a música e marque o início do 1º e do 2º verso, ou aperte V em cada início de verso."); }
   zoomEm(Math.min(4, Math.max(1, 1200 / Math.max(1, cv.clientWidth))), 0);
   desenhar();
@@ -1517,7 +2173,7 @@ async function abrirAudio(bytes, nome, tipoMime, exemplo) {
 $("fileIn").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; abrirAudio(await f.arrayBuffer(), f.name, f.type, false); };
 
 const EXEMPLO = {versos: [0.72, 12.10, 23.52, 33.98].map(t => ({inicio: t, partes: 8, cortes: null, acordes: Array.from({length: 8}, () => ({}))})),
-  fim: 45.3, nParts: 8, estilo: "ugros", tempos: 2, instrumentos: "ambos", tonalidade: null};
+  fim: 45.3, nParts: 8, estilo: "ugros", tempos: 2, instrumentos: "ambos", tonalidade: null, cordas: 3, versaoHarmonia: "inter"};
 const AUDIO_EXEMPLO = "";
 
 /* ============================================================
@@ -1544,7 +2200,7 @@ $("instalar").onclick = async () => {
 };
 
 async function iniciar() {
-  lerCores(); tamanhoCanvas(); renderEstilos(); renderGrade(); desenhar();
+  lerCores(); tamanhoCanvas(); renderEstilos(); renderCordas(); renderTempos(); renderGrade(); desenhar(); metro.luz(-1);
   // app instalado: registra o modo offline
   if ("serviceWorker" in navigator && !DENTRO_DO_CLAUDE && location.protocol.startsWith("http") && document.querySelector('link[rel="manifest"]')) {
     try { navigator.serviceWorker.register("sw.js"); } catch (e) {}
